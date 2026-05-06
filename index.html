@@ -400,22 +400,36 @@ function posicionSol(lat, lng, fecha, horaH) {
 // ═══════════════════════════════════════════════
 async function plantasCatastro(rc) {
   if (!rc || rc.length < 14) return null;
-  const rc14 = rc.substring(0,14);
+
+  // Con RC de 14 chars (parcela completa) obtenemos TODOS los inmuebles del edificio
+  // y podemos calcular la planta más alta real.
+  // Con RC de 20 chars solo obtenemos el local específico (normalmente planta 0).
+  const url = `https://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/OVCCallejero.asmx/Consulta_DNPRC?Provincia=&Municipio=&RC=${encodeURIComponent(rc.substring(0, 14))}`;
+
   try {
-    // Servicio INSPIRE del Catastro — Building con ref catastral
-    const url = `https://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/OVCCallejeroCodigos.asmx/Consulta_DNPRC_Codigos?CodigoProvincia=28&CodigoMunicipio=900&RC=${encodeURIComponent(rc14)}`;
     const r = await fetch(url);
     if (!r.ok) return null;
     const txt = await r.text();
-    const xml = new DOMParser().parseFromString(txt,'text/xml');
-    // nump = número de plantas sobre rasante
-    const nump = xml.querySelector('nump');
-    if (nump && nump.textContent.trim()) return parseInt(nump.textContent)||null;
-    // Alternativa: máximo de nplp en construcciones
-    let max=0;
-    xml.querySelectorAll('nplp').forEach(n=>{ max=Math.max(max,parseInt(n.textContent)||0); });
-    return max>0?max:null;
-  } catch(e){ return null; }
+    const xml = new DOMParser().parseFromString(txt, 'text/xml');
+
+    // Recorrer todos los <pt> (número de planta) de todas las construcciones
+    // Ignorar negativos (sótanos). maxPt+1 = número de plantas sobre rasante.
+    let maxPt = -1;
+    for (const el of xml.getElementsByTagName('pt')) {
+      const v = parseInt(el.textContent);
+      if (!isNaN(v) && v >= 0) maxPt = Math.max(maxPt, v);
+    }
+    if (maxPt >= 0) return maxPt + 1;
+
+    // Fallback por si el XML tiene nump/nplp
+    let max = 0;
+    for (const el of xml.getElementsByTagName('nump')) { max = Math.max(max, parseInt(el.textContent) || 0); }
+    for (const el of xml.getElementsByTagName('nplp')) { max = Math.max(max, parseInt(el.textContent) || 0); }
+    return max > 0 ? max : null;
+
+  } catch(e) {
+    return null;
+  }
 }
 
 // ═══════════════════════════════════════════════
@@ -523,13 +537,12 @@ fetch('data/terrazas.json')
 
       m.on('click', async()=>{
         const popup = m.getPopup();
-        // Mostrar popup inicial
         popup.setContent(popupHTML(t, null, resultados[t.id_terraza]?.estimado));
         map.openPopup(popup, m.getLatLng());
-
-        // Si hay sol Y la terraza tiene ref catastral Y no tenemos dato exacto → consultar Catastro
         if (solActual && solActual.arriba && t.ref_catastral && (!resultados[t.id_terraza] || resultados[t.id_terraza].estimado)) {
+          console.log(`[Catastro] Consultando: ${t.ref_catastral} | ${t.rotulo}`);
           const plantas = await plantasCatastro(t.ref_catastral);
+          console.log(`[Catastro] → plantas: ${plantas}`);
           const se = sombraEdificio(solActual.alt, plantas);
           const sp = sombraPropia(t);
           resultados[t.id_terraza] = {se, sp, plantas, estimado:false};
