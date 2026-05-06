@@ -2,50 +2,57 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Terrazas con Sombra · Madrid</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --fondo: #0D1117;
-  --panel: #161B22;
-  --panel2: #1C2333;
-  --borde: #30363D;
-  --texto: #E6EDF3;
-  --texto2: #7D8590;
-  --acento: #F0A500;
+  --fondo:   #FFF8F0;
+  --panel:   #FFFFFF;
+  --panel2:  #FEF3E2;
+  --borde:   #F0DEC8;
+  --borde2:  #E8C99A;
+  --texto:   #1A1208;
+  --texto2:  #7A6248;
+  --acento:  #E8630A;
+  --acento2: #F5A623;
+  --azul:    #1A7ABF;
+  --verde:   #1A7A4A;
+  --sombra:  rgba(232,99,10,0.12);
 
-  --c-edificio-sombra: #1A6B4A;
-  --c-edificio:        #2EAA6E;
-  --c-propia:          #B8960A;
-  --c-sol:             #C04010;
-  --c-desconocida:     #3B4455;
+  --c-edif-prop: #1A6B4A;
+  --c-edif:      #2EAA6E;
+  --c-prop:      #C07800;
+  --c-sol:       #C04010;
+  --c-desc:      #BFB0A0;
 }
 
 body {
   font-family: 'DM Sans', sans-serif;
   background: var(--fondo);
   color: var(--texto);
-  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
+/* ── HEADER ── */
 header {
   background: var(--panel);
-  border-bottom: 1px solid var(--borde);
-  padding: 0 20px;
-  height: 56px;
+  border-bottom: 2px solid var(--borde);
+  padding: 0 16px;
+  height: 54px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
   z-index: 1000;
-  gap: 16px;
+  gap: 12px;
+  box-shadow: 0 2px 12px rgba(232,99,10,0.08);
 }
 
 .logo {
@@ -57,254 +64,450 @@ header {
   gap: 8px;
   white-space: nowrap;
   flex-shrink: 0;
+  color: var(--acento);
 }
 
 .logo-badge {
-  background: var(--acento);
-  color: #000;
-  width: 28px; height: 28px;
-  border-radius: 7px;
+  background: linear-gradient(135deg, var(--acento2), var(--acento));
+  width: 32px; height: 32px;
+  border-radius: 9px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 14px;
+  font-size: 16px;
+  box-shadow: 0 2px 8px rgba(232,99,10,0.3);
 }
 
+.logo-txt { color: var(--texto); }
+.logo-txt span { color: var(--acento); }
+
+/* Leyenda en header — solo desktop */
 .leyenda-header {
   display: flex;
-  gap: 14px;
+  gap: 12px;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
-
 .ley-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.73rem;
-  color: var(--texto2);
-  white-space: nowrap;
+  display: flex; align-items: center; gap: 5px;
+  font-size: 0.72rem; color: var(--texto2); white-space: nowrap;
 }
+.ley-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 
-.ley-dot {
-  width: 10px; height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
+@media (max-width: 640px) { .leyenda-header { display: none; } }
+
+/* ── SEARCH BAR ── */
+.search-wrap {
+  position: relative;
+  flex: 1;
+  max-width: 340px;
 }
-
-.controles {
-  background: var(--panel);
-  border-bottom: 1px solid var(--borde);
-  padding: 10px 20px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-}
-
-.ctrl-label {
-  font-size: 0.72rem;
-  color: var(--texto2);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  white-space: nowrap;
-}
-
-.ctrl-grupo {
-  display: flex; align-items: center; gap: 8px;
-}
-
-input[type="date"] {
-  background: var(--fondo);
-  border: 1px solid var(--borde);
+.search-input {
+  width: 100%;
+  background: var(--panel2);
+  border: 1.5px solid var(--borde2);
   color: var(--texto);
-  border-radius: 8px;
-  padding: 5px 10px;
-  font-size: 0.82rem;
+  border-radius: 100px;
+  padding: 7px 14px 7px 36px;
+  font-size: 0.85rem;
   font-family: 'DM Sans', sans-serif;
   outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.search-input:focus {
+  border-color: var(--acento);
+  box-shadow: 0 0 0 3px rgba(232,99,10,0.1);
+}
+.search-input::placeholder { color: var(--texto2); }
+.search-icon {
+  position: absolute; left: 11px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px; pointer-events: none; opacity: 0.5;
+}
+.search-clear {
+  position: absolute; right: 10px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  color: var(--texto2); font-size: 16px; padding: 2px;
+  display: none;
+}
+
+.search-dropdown {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+  background: var(--panel);
+  border: 1.5px solid var(--borde2);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  z-index: 2000;
+  overflow: hidden;
+  display: none;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.search-dropdown.open { display: block; }
+.sd-item {
+  padding: 10px 14px;
   cursor: pointer;
+  border-bottom: 1px solid var(--borde);
+  transition: background 0.1s;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.sd-item:last-child { border-bottom: none; }
+.sd-item:hover, .sd-item:focus { background: var(--panel2); outline: none; }
+.sd-nombre { font-size: 0.85rem; font-weight: 600; color: var(--texto); }
+.sd-dir { font-size: 0.73rem; color: var(--texto2); }
+.sd-empty { padding: 14px; text-align: center; color: var(--texto2); font-size: 0.82rem; }
+
+/* ── CONTROLES (desktop) ── */
+.controles {
+  background: var(--panel2);
+  border-bottom: 1.5px solid var(--borde);
+  padding: 9px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+@media (max-width: 640px) { .controles { display: none; } }
+
+.ctrl-label {
+  font-size: 0.7rem; color: var(--texto2); font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.07em; white-space: nowrap;
+}
+.ctrl-grupo { display: flex; align-items: center; gap: 8px; }
+
+input[type="date"] {
+  background: var(--panel); border: 1.5px solid var(--borde2);
+  color: var(--texto); border-radius: 9px;
+  padding: 5px 10px; font-size: 0.82rem;
+  font-family: 'DM Sans', sans-serif;
+  outline: none; cursor: pointer;
   transition: border-color 0.15s;
 }
 input[type="date"]:focus { border-color: var(--acento); }
 
 input[type="range"] {
-  -webkit-appearance: none;
-  width: 150px; height: 4px;
-  background: var(--borde);
-  border-radius: 4px;
-  outline: none;
-  cursor: pointer;
+  -webkit-appearance: none; width: 140px; height: 4px;
+  background: var(--borde2); border-radius: 4px; outline: none; cursor: pointer;
 }
 input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 16px; height: 16px;
-  border-radius: 50%;
-  background: var(--acento);
-  cursor: pointer;
+  -webkit-appearance: none; width: 18px; height: 18px;
+  border-radius: 50%; background: var(--acento);
+  cursor: pointer; box-shadow: 0 1px 6px rgba(232,99,10,0.4);
 }
 
 .hora-display {
-  font-family: 'Syne', sans-serif;
-  font-weight: 700;
-  font-size: 1rem;
-  color: var(--acento);
-  min-width: 44px;
+  font-family: 'Syne', sans-serif; font-weight: 700;
+  font-size: 1rem; color: var(--acento); min-width: 44px;
 }
 
-.sep { width: 1px; height: 22px; background: var(--borde); }
+.sep { width: 1px; height: 22px; background: var(--borde2); }
 
 .btn-calc {
-  background: var(--acento);
-  color: #000;
-  border: none;
-  border-radius: 8px;
-  padding: 7px 16px;
-  font-size: 0.82rem;
-  font-family: 'Syne', sans-serif;
-  font-weight: 700;
-  cursor: pointer;
-  transition: opacity 0.15s;
+  background: linear-gradient(135deg, var(--acento2), var(--acento));
+  color: #fff; border: none; border-radius: 9px;
+  padding: 7px 18px; font-size: 0.82rem;
+  font-family: 'Syne', sans-serif; font-weight: 700;
+  cursor: pointer; transition: opacity 0.15s, transform 0.1s;
   white-space: nowrap;
+  box-shadow: 0 2px 10px rgba(232,99,10,0.25);
 }
-.btn-calc:hover { opacity: 0.85; }
-.btn-calc:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-calc:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn-calc:active { transform: translateY(0); }
+.btn-calc:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
 .prog-wrap { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--texto2); }
-.prog-bg { width: 100px; height: 4px; background: var(--borde); border-radius: 4px; overflow: hidden; display: none; }
+.prog-bg { width: 90px; height: 4px; background: var(--borde); border-radius: 4px; overflow: hidden; display: none; }
 .prog-fill { height: 100%; background: var(--acento); border-radius: 4px; transition: width 0.2s; width: 0%; }
 
+/* ── FILTROS (desktop) ── */
+.filtros {
+  background: var(--panel); border-bottom: 1.5px solid var(--borde);
+  padding: 7px 16px; display: flex; align-items: center;
+  gap: 8px; flex-shrink: 0; flex-wrap: wrap;
+}
+@media (max-width: 640px) { .filtros { display: none; } }
+
+.btn-f {
+  background: var(--fondo); border: 1.5px solid var(--borde2);
+  color: var(--texto2); border-radius: 100px;
+  padding: 4px 12px; font-size: 0.77rem;
+  font-family: 'DM Sans', sans-serif; font-weight: 500;
+  cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.btn-f:hover { border-color: var(--acento); color: var(--texto); }
+.btn-f.on {
+  background: var(--acento); border-color: var(--acento);
+  color: #fff; font-weight: 700;
+}
+.f-sep { width: 1px; height: 18px; background: var(--borde2); }
+.f-label { font-size: 0.68rem; color: var(--texto2); text-transform: uppercase; letter-spacing: 0.07em; white-space: nowrap; }
+
+/* ── MAPA ── */
 #map { flex: 1; z-index: 1; }
 
-/* Popup */
+/* ── BOTTOM SHEET (mobile) ── */
+.bs-backdrop {
+  display: none;
+  position: fixed; inset: 0; background: rgba(0,0,0,0.3);
+  z-index: 1500; backdrop-filter: blur(2px);
+}
+.bs-backdrop.open { display: block; }
+
+.bottom-sheet {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--panel);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.15);
+  z-index: 1600;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
+  max-height: 90dvh;
+  overflow-y: auto;
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+.bottom-sheet.open { transform: translateY(0); }
+
+.bs-handle {
+  width: 40px; height: 4px; background: var(--borde2);
+  border-radius: 4px; margin: 12px auto 0;
+}
+
+.bs-header {
+  padding: 14px 20px 0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.bs-title {
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1rem;
+}
+.bs-close {
+  background: var(--panel2); border: none; border-radius: 50%;
+  width: 30px; height: 30px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: var(--texto2);
+}
+
+.bs-body { padding: 16px 20px; }
+.bs-section { margin-bottom: 20px; }
+.bs-section-label {
+  font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--texto2); margin-bottom: 10px;
+}
+
+/* Fecha & Hora en BS */
+.bs-fecha-row { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; }
+.bs-fecha-row input[type="date"] {
+  flex: 1; background: var(--panel2);
+  font-size: 0.9rem; padding: 9px 12px;
+}
+
+.bs-slider-wrap { display: flex; align-items: center; gap: 12px; }
+.bs-slider-wrap input[type="range"] { flex: 1; width: auto; height: 6px; }
+.bs-hora-display {
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: 1.4rem; color: var(--acento); min-width: 58px; text-align: right;
+}
+
+.btn-calc-bs {
+  width: 100%; background: linear-gradient(135deg, var(--acento2), var(--acento));
+  color: #fff; border: none; border-radius: 12px;
+  padding: 13px; font-size: 0.95rem;
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  cursor: pointer; margin-top: 4px;
+  box-shadow: 0 4px 16px rgba(232,99,10,0.3);
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btn-calc-bs:active { transform: scale(0.98); }
+.btn-calc-bs:disabled { opacity: 0.4; }
+
+/* Filtros en BS */
+.bs-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.bs-chip {
+  background: var(--panel2); border: 1.5px solid var(--borde2);
+  color: var(--texto2); border-radius: 100px;
+  padding: 6px 14px; font-size: 0.82rem; font-weight: 500;
+  cursor: pointer; transition: all 0.15s;
+}
+.bs-chip.on { background: var(--acento); border-color: var(--acento); color: #fff; font-weight: 700; }
+
+/* Leyenda en BS */
+.bs-leyenda { display: flex; flex-direction: column; gap: 9px; }
+.bs-ley-row { display: flex; align-items: center; gap: 10px; }
+.bs-ley-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.bs-ley-txt { font-size: 0.85rem; color: var(--texto); }
+
+/* ── FAB MOBILE ── */
+.fab-wrap {
+  display: none;
+  position: fixed; bottom: 24px; right: 16px;
+  z-index: 1400; flex-direction: column; gap: 10px; align-items: flex-end;
+}
+@media (max-width: 640px) { .fab-wrap { display: flex; } }
+
+.fab {
+  width: 52px; height: 52px; border-radius: 50%;
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.fab:active { transform: scale(0.92); }
+
+.fab-main {
+  background: linear-gradient(135deg, var(--acento2), var(--acento));
+  color: #fff; width: 58px; height: 58px; font-size: 22px;
+}
+.fab-loc {
+  background: var(--panel); color: var(--azul);
+  border: 1.5px solid var(--borde2);
+}
+
+/* ── POPUP ── */
 .leaflet-popup-content-wrapper {
   background: var(--panel) !important;
-  border: 1px solid var(--borde) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
+  border: 1.5px solid var(--borde2) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important;
   padding: 0 !important;
 }
 .leaflet-popup-tip { background: var(--panel) !important; }
-.leaflet-popup-close-button { color: var(--texto2) !important; top: 10px !important; right: 12px !important; }
+.leaflet-popup-close-button {
+  color: var(--texto2) !important; top: 10px !important; right: 12px !important;
+  font-size: 18px !important;
+}
 
-.pi { padding: 15px 17px; min-width: 240px; max-width: 295px; }
-.pi-nombre { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; margin-bottom: 3px; padding-right: 18px; }
-.pi-dir { font-size: 0.75rem; color: var(--texto2); margin-bottom: 10px; }
+.pi { padding: 14px 16px; min-width: 240px; max-width: 290px; }
+.pi-nombre {
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: 0.95rem; margin-bottom: 2px; padding-right: 18px;
+  color: var(--texto);
+}
+.pi-dir { font-size: 0.74rem; color: var(--texto2); margin-bottom: 10px; }
 
 .pi-estado {
   display: flex; align-items: flex-start; gap: 8px;
-  padding: 8px 10px; border-radius: 8px; margin-bottom: 10px;
-  font-size: 0.79rem; font-weight: 500; line-height: 1.4;
+  padding: 8px 10px; border-radius: 9px; margin-bottom: 10px;
+  font-size: 0.79rem; font-weight: 600; line-height: 1.4;
 }
-.est-pendiente { background: rgba(93,105,120,0.15); color: var(--texto2); }
-.est-noche     { background: rgba(80,100,160,0.2);  color: #93C5FD; }
-.est-edif-prop { background: rgba(26,107,74,0.2);   color: #4ADE80; }
-.est-edif      { background: rgba(46,170,110,0.2);  color: #34D399; }
-.est-prop      { background: rgba(184,150,10,0.2);  color: #FCD34D; }
-.est-sol       { background: rgba(192,64,16,0.2);   color: #FB923C; }
-.est-cargando  { background: rgba(93,105,120,0.2);  color: var(--texto2); }
+.est-pendiente { background: #F5F0EB; color: var(--texto2); }
+.est-noche     { background: #EEF0FF; color: #4060C0; }
+.est-edif-prop { background: #E8F8EE; color: #1A7A4A; }
+.est-edif      { background: #EDF8F2; color: #2EAA6E; }
+.est-prop      { background: #FFF8E0; color: #A06000; }
+.est-sol       { background: #FFF0E8; color: #C04010; }
+.est-cargando  { background: #F5F0EB; color: var(--texto2); }
 
 .pi-grid {
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 7px; border-top: 1px solid var(--borde); padding-top: 9px;
 }
 .pd { display: flex; flex-direction: column; gap: 1px; }
-.pd-l { font-size: 0.64rem; color: var(--texto2); text-transform: uppercase; letter-spacing: 0.05em; }
-.pd-v { font-size: 0.8rem; font-weight: 500; }
-.pi-sol { font-size: 0.72rem; color: var(--texto2); font-style: italic; border-top: 1px solid var(--borde); padding-top: 7px; margin-top: 2px; }
-.pi-estimado { font-size: 0.68rem; color: var(--texto2); margin-top: 5px; font-style: italic; }
+.pd-l { font-size: 0.62rem; color: var(--texto2); text-transform: uppercase; letter-spacing: 0.05em; }
+.pd-v { font-size: 0.8rem; font-weight: 600; color: var(--texto); }
+.pi-sol { font-size: 0.71rem; color: var(--texto2); font-style: italic; border-top: 1px solid var(--borde); padding-top: 7px; margin-top: 4px; }
+.pi-estimado { font-size: 0.67rem; color: var(--texto2); margin-top: 5px; font-style: italic; }
 
 /* Tooltip */
 .leaflet-tooltip {
-  background: var(--panel) !important; border: 1px solid var(--borde) !important;
+  background: var(--panel) !important; border: 1.5px solid var(--borde2) !important;
   color: var(--texto) !important; font-family: 'DM Sans', sans-serif !important;
-  font-size: 0.75rem !important; border-radius: 6px !important;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important; padding: 3px 9px !important;
+  font-size: 0.75rem !important; border-radius: 7px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important; padding: 4px 9px !important;
 }
 
+/* ── LOADING ── */
 #loading {
-  position: fixed; inset: 0; background: var(--fondo);
+  position: fixed; inset: 0;
+  background: linear-gradient(160deg, #FFF8F0 0%, #FEE8C8 100%);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  z-index: 9999; gap: 18px;
+  z-index: 9999; gap: 20px;
 }
-.ld-titulo { font-family: 'Syne', sans-serif; font-size: 1.6rem; font-weight: 800; }
-.ld-bar-bg { width: 220px; height: 3px; background: var(--borde); border-radius: 10px; overflow: hidden; }
-.ld-bar { height: 100%; background: var(--acento); border-radius: 10px; animation: ldbar 2s ease forwards; }
+.ld-emoji { font-size: 3rem; animation: ldpulse 1.5s ease-in-out infinite; }
+@keyframes ldpulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
+.ld-titulo { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--acento); }
+.ld-bar-bg { width: 200px; height: 4px; background: var(--borde); border-radius: 10px; overflow: hidden; }
+.ld-bar { height: 100%; background: linear-gradient(90deg, var(--acento2), var(--acento)); border-radius: 10px; animation: ldbar 2s ease forwards; }
 @keyframes ldbar { 0%{width:0} 70%{width:78%} 100%{width:100%} }
-.ld-sub { font-size: 0.8rem; color: var(--texto2); }
+.ld-sub { font-size: 0.82rem; color: var(--texto2); }
 
-/* ── FILTROS ── */
-.filtros {
-  background: var(--panel2);
-  border-bottom: 1px solid var(--borde);
-  padding: 8px 20px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-}
-
-.btn-f {
-  background: var(--fondo);
-  border: 1px solid var(--borde);
-  color: var(--texto2);
-  border-radius: 100px;
-  padding: 4px 13px;
-  font-size: 0.78rem;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-.btn-f:hover { border-color: var(--acento); color: var(--texto); }
-.btn-f.on { background: var(--acento); border-color: var(--acento); color: #000; font-weight: 700; }
-
-.f-sep { width: 1px; height: 18px; background: var(--borde); }
-.f-label { font-size: 0.7rem; color: var(--texto2); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
-
-#esquina {
-  position: absolute; bottom: 20px; left: 20px;
-  background: var(--panel); border: 1px solid var(--borde);
-  border-radius: 10px; padding: 10px 14px; z-index: 500;
-  font-size: 0.73rem; color: var(--texto2); line-height: 1.9;
-  pointer-events: none;
-}
-#esquina strong { color: var(--texto); }
-
+/* ── STATS BOX ── */
 #stats-box {
   position: absolute; bottom: 20px; right: 52px;
-  background: var(--panel); border: 1px solid var(--borde);
-  border-radius: 10px; padding: 10px 14px; z-index: 500;
-  font-size: 0.73rem; color: var(--texto2); line-height: 2;
+  background: var(--panel); border: 1.5px solid var(--borde2);
+  border-radius: 12px; padding: 10px 14px; z-index: 500;
+  font-size: 0.73rem; color: var(--texto2); line-height: 2.1;
   display: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
 }
-#stats-box strong { color: var(--acento); }
+#stats-box strong { color: var(--acento); font-weight: 700; }
+@media (max-width: 640px) { #stats-box { right: 12px; bottom: 90px; } }
+
+/* ── ESQUINA ── */
+#esquina {
+  position: absolute; bottom: 20px; left: 20px;
+  background: var(--panel); border: 1.5px solid var(--borde2);
+  border-radius: 10px; padding: 10px 14px; z-index: 500;
+  font-size: 0.72rem; color: var(--texto2); line-height: 1.9;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+#esquina strong { color: var(--texto); }
+@media (max-width: 640px) { #esquina { display: none; } }
+
+/* ── INDICADOR HORA MOBILE ── */
+#hora-pill {
+  display: none;
+  position: absolute; top: 12px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--panel);
+  border: 1.5px solid var(--borde2);
+  border-radius: 100px;
+  padding: 5px 14px;
+  font-family: 'Syne', sans-serif; font-weight: 700;
+  font-size: 0.85rem; color: var(--acento);
+  z-index: 900;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  pointer-events: none;
+}
+@media (max-width: 640px) { #hora-pill { display: block; } }
 </style>
 </head>
 <body>
 
+<!-- LOADING -->
 <div id="loading">
-  <div class="ld-titulo">☀️ Terrazas Madrid</div>
+  <div class="ld-emoji">☀️</div>
+  <div class="ld-titulo">Terrazas Madrid</div>
   <div class="ld-bar-bg"><div class="ld-bar"></div></div>
   <div class="ld-sub">Cargando 6.517 terrazas...</div>
 </div>
 
+<!-- HEADER -->
 <header>
   <div class="logo">
     <div class="logo-badge">☀️</div>
-    Terrazas con Sombra · Madrid
+    <div class="logo-txt">Terrazas <span>Madrid</span></div>
   </div>
+
+  <!-- BÚSQUEDA -->
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" id="search-inp" type="text"
+      placeholder="Buscar terraza o calle…" autocomplete="off">
+    <button class="search-clear" id="search-clear">×</button>
+    <div class="search-dropdown" id="search-dd"></div>
+  </div>
+
   <div class="leyenda-header">
-    <div class="ley-item"><div class="ley-dot" style="background:#1A6B4A"></div>Edificio + toldo</div>
-    <div class="ley-item"><div class="ley-dot" style="background:#2EAA6E"></div>Sombra edificio</div>
-    <div class="ley-item"><div class="ley-dot" style="background:#B8960A"></div>Solo toldo/sombrilla</div>
-    <div class="ley-item"><div class="ley-dot" style="background:#C04010"></div>Sin sombra</div>
-    <div class="ley-item"><div class="ley-dot" style="background:#3B4455"></div>Sin calcular</div>
+    <div class="ley-item"><div class="ley-dot" style="background:#1A6B4A"></div>Edificio+toldo</div>
+    <div class="ley-item"><div class="ley-dot" style="background:#2EAA6E"></div>Edificio</div>
+    <div class="ley-item"><div class="ley-dot" style="background:#C07800"></div>Toldo</div>
+    <div class="ley-item"><div class="ley-dot" style="background:#C04010"></div>Sol</div>
+    <div class="ley-item"><div class="ley-dot" style="background:#BFB0A0"></div>Sin calcular</div>
   </div>
 </header>
 
+<!-- CONTROLES DESKTOP -->
 <div class="controles">
   <div class="ctrl-grupo">
     <span class="ctrl-label">Fecha</span>
@@ -324,12 +527,13 @@ input[type="range"]::-webkit-slider-thumb {
   </div>
 </div>
 
+<!-- FILTROS DESKTOP -->
 <div class="filtros">
   <span class="f-label">Ubicación</span>
   <button class="btn-f on" onclick="setFiltroUbic(this,'todas')">Todas</button>
   <button class="btn-f" onclick="setFiltroUbic(this,'Acera')">🚶 Acera</button>
   <button class="btn-f" onclick="setFiltroUbic(this,'Plaza peatonal')">🏛️ Plaza</button>
-  <button class="btn-f" onclick="setFiltroUbic(this,'Calle peatonal')">🛶 Calle peatonal</button>
+  <button class="btn-f" onclick="setFiltroUbic(this,'Calle peatonal')">🛶 Peatonal</button>
   <button class="btn-f" onclick="setFiltroUbic(this,'Bulevar')">🌳 Bulevar</button>
   <div class="f-sep"></div>
   <span class="f-label">Sombra propia</span>
@@ -338,7 +542,17 @@ input[type="range"]::-webkit-slider-thumb {
   <button class="btn-f" onclick="setFiltroSombra(this,'sin')">☀️ Sin toldo/sombrilla</button>
 </div>
 
+<!-- MAPA -->
 <div id="map"></div>
+<div id="hora-pill">📅 — : —</div>
+
+<!-- STATS / ESQUINA -->
+<div id="stats-box">
+  <span id="st-label">—</span><br>
+  🟢 Sombra edificio: <strong id="st-edif">—</strong><br>
+  🟡 Solo toldo: <strong id="st-prop">—</strong><br>
+  🔴 Al sol: <strong id="st-sol">—</strong>
+</div>
 
 <div id="esquina">
   <strong>Cómo usar:</strong><br>
@@ -347,22 +561,86 @@ input[type="range"]::-webkit-slider-thumb {
   3. Clic en una terraza → datos exactos del Catastro
 </div>
 
-<div id="stats-box">
-  <span id="st-label">Resultados —</span><br>
-  🟢 Sombra de edificio: <strong id="st-edif">—</strong><br>
-  🟡 Solo toldo/sombrilla: <strong id="st-prop">—</strong><br>
-  🔴 Sin sombra: <strong id="st-sol">—</strong>
+<!-- FAB MOBILE -->
+<div class="fab-wrap">
+  <button class="fab fab-loc" id="fab-loc" title="Mi ubicación">📍</button>
+  <button class="fab fab-main" id="fab-main" title="Ajustes">⚙️</button>
+</div>
+
+<!-- BOTTOM SHEET BACKDROP -->
+<div class="bs-backdrop" id="bs-backdrop"></div>
+
+<!-- BOTTOM SHEET -->
+<div class="bottom-sheet" id="bottom-sheet">
+  <div class="bs-handle"></div>
+  <div class="bs-header">
+    <span class="bs-title">☀️ Ajustes y filtros</span>
+    <button class="bs-close" id="bs-close">×</button>
+  </div>
+  <div class="bs-body">
+
+    <!-- Fecha y hora -->
+    <div class="bs-section">
+      <div class="bs-section-label">📅 Fecha</div>
+      <div class="bs-fecha-row">
+        <input type="date" id="inp-fecha-bs">
+      </div>
+      <div class="bs-section-label">🕐 Hora</div>
+      <div class="bs-slider-wrap">
+        <input type="range" id="slider-bs" min="6" max="22" step="0.5" value="14">
+        <span class="bs-hora-display" id="hora-txt-bs">14:00</span>
+      </div>
+    </div>
+
+    <button class="btn-calc-bs" id="btn-calc-bs">☀️ Calcular sombras</button>
+
+    <!-- Filtro ubicación -->
+    <div class="bs-section" style="margin-top:20px">
+      <div class="bs-section-label">📍 Ubicación de la terraza</div>
+      <div class="bs-chips" id="chips-ubic">
+        <button class="bs-chip on" data-val="todas">Todas</button>
+        <button class="bs-chip" data-val="Acera">🚶 Acera</button>
+        <button class="bs-chip" data-val="Plaza peatonal">🏛️ Plaza</button>
+        <button class="bs-chip" data-val="Calle peatonal">🛶 Peatonal</button>
+        <button class="bs-chip" data-val="Bulevar">🌳 Bulevar</button>
+      </div>
+    </div>
+
+    <!-- Filtro sombra propia -->
+    <div class="bs-section">
+      <div class="bs-section-label">⛱️ Sombra propia</div>
+      <div class="bs-chips" id="chips-sombra">
+        <button class="bs-chip on" data-val="todas">Todas</button>
+        <button class="bs-chip" data-val="con">Con toldo/sombrilla</button>
+        <button class="bs-chip" data-val="sin">Sin toldo/sombrilla</button>
+      </div>
+    </div>
+
+    <!-- Leyenda -->
+    <div class="bs-section">
+      <div class="bs-section-label">🗺️ Leyenda</div>
+      <div class="bs-leyenda">
+        <div class="bs-ley-row"><div class="bs-ley-dot" style="background:#1A6B4A"></div><span class="bs-ley-txt">Sombra de edificio + toldo/sombrilla</span></div>
+        <div class="bs-ley-row"><div class="bs-ley-dot" style="background:#2EAA6E"></div><span class="bs-ley-txt">Sombra del edificio</span></div>
+        <div class="bs-ley-row"><div class="bs-ley-dot" style="background:#C07800"></div><span class="bs-ley-txt">Solo toldo o sombrilla</span></div>
+        <div class="bs-ley-row"><div class="bs-ley-dot" style="background:#C04010"></div><span class="bs-ley-txt">Al sol pleno</span></div>
+        <div class="bs-ley-row"><div class="bs-ley-dot" style="background:#BFB0A0"></div><span class="bs-ley-txt">Sin calcular aún</span></div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-// ═══════════════════════════════════════════════
+
+// ═══════════════════════════════════════════
 // UTM zona 30N → WGS84
-// ═══════════════════════════════════════════════
-function utm2ll(E, N) {
+// ═══════════════════════════════════════════
+function utm2ll(E,N){
   const a=6378137,f=1/298.257223563,b=a*(1-f),e2=1-(b*b)/(a*a),ep2=e2/(1-e2);
-  const k0=0.9996, lon0=(30-1)*6*Math.PI/180-Math.PI+3*Math.PI/180;
-  const x=E-500000, y=N, M=y/k0;
+  const k0=0.9996,lon0=(30-1)*6*Math.PI/180-Math.PI+3*Math.PI/180;
+  const x=E-500000,y=N,M=y/k0;
   const mu=M/(a*(1-e2/4-3*e2**2/64-5*e2**3/256));
   const e1=(1-Math.sqrt(1-e2))/(1+Math.sqrt(1-e2));
   const p1=mu+(3*e1/2-27*e1**3/32)*Math.sin(2*mu)+(21*e1**2/16-55*e1**4/32)*Math.sin(4*mu)+(151*e1**3/96)*Math.sin(6*mu);
@@ -370,13 +648,13 @@ function utm2ll(E, N) {
   const R1=a*(1-e2)/Math.pow(1-e2*Math.sin(p1)**2,1.5),D=x/(N1*k0);
   const lat=p1-(N1*Math.tan(p1)/R1)*(D**2/2-(5+3*T1+10*C1-4*C1**2-9*ep2)*D**4/24+(61+90*T1+298*C1+45*T1**2-252*ep2-3*C1**2)*D**6/720);
   const lon=lon0+(D-(1+2*T1+C1)*D**3/6+(5-2*C1+28*T1-3*C1**2+8*ep2+24*T1**2)*D**5/120)/Math.cos(p1);
-  return [lat*180/Math.PI, lon*180/Math.PI];
+  return [lat*180/Math.PI,lon*180/Math.PI];
 }
 
-// ═══════════════════════════════════════════════
-// Posición solar (algoritmo NOAA simplificado)
-// ═══════════════════════════════════════════════
-function posicionSol(lat, lng, fecha, horaH) {
+// ═══════════════════════════════════════════
+// Posición solar
+// ═══════════════════════════════════════════
+function posicionSol(lat,lng,fecha,horaH){
   const D=Math.PI/180;
   const d=new Date(fecha);
   const doy=Math.floor((d-new Date(d.getFullYear(),0,0))/86400000);
@@ -391,114 +669,89 @@ function posicionSol(lat, lng, fecha, horaH) {
   const alt=altR/D;
   let az=Math.acos((Math.sin(dec)-Math.sin(lr)*Math.sin(altR))/(Math.cos(lr)*Math.cos(altR)))/D;
   if(ha>0) az=360-az;
-  return {alt, az, arriba: alt>3};
+  return {alt,az,arriba:alt>3};
 }
 
-// ═══════════════════════════════════════════════
-// Consulta Catastro INSPIRE (tiene CORS abierto)
-// Obtiene número de plantas del edificio
-// ═══════════════════════════════════════════════
-async function plantasCatastro(rc) {
-  if (!rc || rc.length < 14) return null;
-
-  // Con RC de 14 chars (parcela completa) obtenemos TODOS los inmuebles del edificio
-  // y podemos calcular la planta más alta real.
-  // Con RC de 20 chars solo obtenemos el local específico (normalmente planta 0).
-  const url = `https://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/OVCCallejero.asmx/Consulta_DNPRC?Provincia=&Municipio=&RC=${encodeURIComponent(rc.substring(0, 14))}`;
-
-  try {
-    const r = await fetch(url);
-    if (!r.ok) return null;
-    const txt = await r.text();
-    const xml = new DOMParser().parseFromString(txt, 'text/xml');
-
-    // Recorrer todos los <pt> (número de planta) de todas las construcciones
-    // Ignorar negativos (sótanos). maxPt+1 = número de plantas sobre rasante.
-    let maxPt = -1;
-    for (const el of xml.getElementsByTagName('pt')) {
-      const v = parseInt(el.textContent);
-      if (!isNaN(v) && v >= 0) maxPt = Math.max(maxPt, v);
-    }
-    if (maxPt >= 0) return maxPt + 1;
-
-    // Fallback por si el XML tiene nump/nplp
-    let max = 0;
-    for (const el of xml.getElementsByTagName('nump')) { max = Math.max(max, parseInt(el.textContent) || 0); }
-    for (const el of xml.getElementsByTagName('nplp')) { max = Math.max(max, parseInt(el.textContent) || 0); }
-    return max > 0 ? max : null;
-
-  } catch(e) {
-    return null;
-  }
+// ═══════════════════════════════════════════
+// Catastro
+// ═══════════════════════════════════════════
+async function plantasCatastro(rc){
+  if(!rc||rc.length<14) return null;
+  const url=`https://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/OVCCallejero.asmx/Consulta_DNPRC?Provincia=&Municipio=&RC=${encodeURIComponent(rc.substring(0,14))}`;
+  try{
+    const r=await fetch(url); if(!r.ok) return null;
+    const xml=new DOMParser().parseFromString(await r.text(),'text/xml');
+    let max=-1;
+    for(const el of xml.getElementsByTagName('pt')){const v=parseInt(el.textContent);if(!isNaN(v)&&v>=0)max=Math.max(max,v);}
+    if(max>=0) return max+1;
+    let m2=0;
+    for(const el of xml.getElementsByTagName('nump')){m2=Math.max(m2,parseInt(el.textContent)||0);}
+    for(const el of xml.getElementsByTagName('nplp')){m2=Math.max(m2,parseInt(el.textContent)||0);}
+    return m2>0?m2:null;
+  }catch{return null;}
 }
 
-// ═══════════════════════════════════════════════
-// Lógica de sombra de edificio
-// ═══════════════════════════════════════════════
-function sombraEdificio(altSol, plantas) {
-  if (altSol <= 0) return true;
-  if (!plantas) return false;
-  const h = plantas * 3;       // altura estimada en metros
-  const dist = 7;              // distancia media terraza-edificio (acera Madrid ~7m)
-  const sombra = h / Math.tan(altSol * Math.PI/180);
-  return sombra >= dist;
+// ═══════════════════════════════════════════
+// Lógica sombra
+// ═══════════════════════════════════════════
+function sombraEdificio(altSol,plantas){
+  if(altSol<=0) return true;
+  if(!plantas) return false;
+  return (plantas*3)/Math.tan(altSol*Math.PI/180)>=7;
 }
-
-function sombraPropia(t) {
+function sombraPropia(t){
   return (t.sombrillas_es>0)||(t.toldos_pavimento_es>0)||
          (t.sombrillas_ra>0)||(t.toldos_pavimento_ra>0)||
          t.construccion_ligera_fachada_es===true||
          t.construccion_ligera_bordillo_es===true;
 }
 
-// ═══════════════════════════════════════════════
 // Colores
-// ═══════════════════════════════════════════════
-function color(sE, sP) {
-  if(sE&&sP)  return {f:'#1A6B4A',s:'#2EAA6E'};
-  if(sE)      return {f:'#2EAA6E',s:'#4ADE80'};
-  if(sP)      return {f:'#B8960A',s:'#E8C840'};
-              return {f:'#C04010',s:'#E05A1E'};
+function color(sE,sP){
+  if(sE&&sP) return {f:'#1A6B4A',s:'#2EAA6E'};
+  if(sE)     return {f:'#2EAA6E',s:'#4ADE80'};
+  if(sP)     return {f:'#C07800',s:'#E8A820'};
+             return {f:'#C04010',s:'#E05A1E'};
 }
-const C_DESC = {f:'#3B4455',s:'#5B6678'};
+const C_DESC={f:'#BFB0A0',s:'#A09080'};
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════
 // MAPA
-// ═══════════════════════════════════════════════
-const map = L.map('map',{zoomControl:false}).setView([40.416,-3.703],13);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
-  attribution:'© OpenStreetMap © CARTO', subdomains:'abcd', maxZoom:19
+// ═══════════════════════════════════════════
+const map=L.map('map',{zoomControl:false}).setView([40.416,-3.703],13);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+  attribution:'© OpenStreetMap © CARTO',subdomains:'abcd',maxZoom:19
 }).addTo(map);
 L.control.zoom({position:'topright'}).addTo(map);
 
-let marcadores=[], resultados={}, solActual=null;
+let marcadores=[], resultados={}, solActual=null, todosLosDatos=[];
 
-function fmtH(h){ return h?h.substring(0,5):'—'; }
+function fmtH(h){return h?h.substring(0,5):'—';}
 
-function popupHTML(t, plantas, esEstimado) {
-  const res = resultados[t.id_terraza];
+function popupHTML(t,plantas,esEstimado){
+  const res=resultados[t.id_terraza];
   const barrio=(t.desc_barrio_local||'').trim();
   const calle=`${(t.clase_vial_edificio||'').trim()} ${(t.desc_vial_edificio||'').trim()}`.trim();
   const num=(t.num_edificio||'').replace(/^0+/,'');
 
   let estadoHTML;
-  if (!solActual) {
+  if(!solActual){
     estadoHTML=`<div class="pi-estado est-pendiente">⚙️ Elige fecha y hora, luego pulsa Calcular</div>`;
-  } else if (!solActual.arriba) {
-    estadoHTML=`<div class="pi-estado est-noche">🌙 Es de noche — el sol está bajo el horizonte</div>`;
-  } else if (!res) {
+  }else if(!solActual.arriba){
+    estadoHTML=`<div class="pi-estado est-noche">🌙 Es de noche</div>`;
+  }else if(!res){
     estadoHTML=`<div class="pi-estado est-cargando">⏳ Consultando Catastro...</div>`;
-  } else {
-    const sE=res.se, sP=res.sp;
-    if(sE&&sP) estadoHTML=`<div class="pi-estado est-edif-prop">🌿 Sombra de edificio + toldo/sombrilla</div>`;
+  }else{
+    const sE=res.se,sP=res.sp;
+    if(sE&&sP) estadoHTML=`<div class="pi-estado est-edif-prop">🌿 Sombra de edificio + toldo</div>`;
     else if(sE) estadoHTML=`<div class="pi-estado est-edif">🏢 Sombra del edificio</div>`;
-    else if(sP) estadoHTML=`<div class="pi-estado est-prop">⛱️ Solo sombra propia (toldo/sombrilla)</div>`;
+    else if(sP) estadoHTML=`<div class="pi-estado est-prop">⛱️ Sombra propia (toldo/sombrilla)</div>`;
     else        estadoHTML=`<div class="pi-estado est-sol">☀️ Al sol pleno a esta hora</div>`;
   }
 
-  const pTxt = plantas ? `${plantas} plantas (~${plantas*3}m)` : (res?.plantas ? `${res.plantas} plantas` : 'Consultando...');
-  const solTxt = solActual ? `Alt. ${solActual.alt.toFixed(1)}°, Az. ${solActual.az.toFixed(0)}°` : '—';
-  const estimTxt = esEstimado ? `<div class="pi-estimado">* Estimación. Clic para datos exactos del Catastro.</div>` : '';
+  const pTxt=plantas?`${plantas} plantas (~${plantas*3}m)`:(res?.plantas?`${res.plantas} plantas`:'Consultando...');
+  const solTxt=solActual?`Alt. ${solActual.alt.toFixed(1)}°, Az. ${solActual.az.toFixed(0)}°`:'—';
+  const estimTxt=esEstimado?`<div class="pi-estimado">* Estimación. Clic para datos exactos del Catastro.</div>`:'';
 
   return `<div class="pi">
     <div class="pi-nombre">${t.rotulo||'Sin nombre'}</div>
@@ -507,48 +760,118 @@ function popupHTML(t, plantas, esEstimado) {
     <div class="pi-grid">
       <div class="pd"><span class="pd-l">Mesas</span><span class="pd-v">${t.mesas_es||0}</span></div>
       <div class="pd"><span class="pd-l">Sillas</span><span class="pd-v">${t.sillas_es||0}</span></div>
-      <div class="pd"><span class="pd-l">Horario L–J</span><span class="pd-v">${fmtH(t.hora_ini_LJ_es)}–${fmtH(t.hora_fin_LJ_es)}</span></div>
-      <div class="pd"><span class="pd-l">Horario V–D</span><span class="pd-v">${fmtH(t.hora_ini_VS_es)}–${fmtH(t.hora_fin_VS_es)}</span></div>
+      <div class="pd"><span class="pd-l">L–J</span><span class="pd-v">${fmtH(t.hora_ini_LJ_es)}–${fmtH(t.hora_fin_LJ_es)}</span></div>
+      <div class="pd"><span class="pd-l">V–D</span><span class="pd-v">${fmtH(t.hora_ini_VS_es)}–${fmtH(t.hora_fin_VS_es)}</span></div>
       <div class="pd"><span class="pd-l">Edificio</span><span class="pd-v">${pTxt}</span></div>
-      <div class="pd"><span class="pd-l">Sombrillas/Toldos</span><span class="pd-v">${(t.sombrillas_es||0)+(t.toldos_pavimento_es||0)}</span></div>
+      <div class="pd"><span class="pd-l">Toldos/Sombrillas</span><span class="pd-v">${(t.sombrillas_es||0)+(t.toldos_pavimento_es||0)}</span></div>
     </div>
     ${solActual?`<div class="pi-sol">☀️ Sol: ${solTxt}</div>`:''}
     ${estimTxt}
   </div>`;
 }
 
-// Cargar JSON
+// ═══════════════════════════════════════════
+// BÚSQUEDA
+// ═══════════════════════════════════════════
+const searchInp=document.getElementById('search-inp');
+const searchDd=document.getElementById('search-dd');
+const searchClear=document.getElementById('search-clear');
+let searchTimeout=null;
+
+searchInp.addEventListener('input',()=>{
+  const q=searchInp.value.trim();
+  searchClear.style.display=q?'block':'none';
+  clearTimeout(searchTimeout);
+  if(q.length<2){closeDd();return;}
+  searchTimeout=setTimeout(()=>doSearch(q),180);
+});
+
+searchInp.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeDd();searchInp.blur();}
+});
+
+searchClear.addEventListener('click',()=>{
+  searchInp.value=''; searchClear.style.display='none'; closeDd();
+});
+
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.search-wrap')) closeDd();
+});
+
+function closeDd(){searchDd.classList.remove('open');searchDd.innerHTML='';}
+
+function doSearch(q){
+  const ql=q.toLowerCase();
+  const res=todosLosDatos.filter(t=>{
+    const n=(t.rotulo||'').toLowerCase();
+    const c=`${t.clase_vial_edificio||''} ${t.desc_vial_edificio||''}`.toLowerCase();
+    return n.includes(ql)||c.includes(ql);
+  }).slice(0,8);
+
+  if(res.length===0){
+    searchDd.innerHTML='<div class="sd-empty">Sin resultados para "'+escHtml(q)+'"</div>';
+  }else{
+    searchDd.innerHTML=res.map(t=>{
+      const calle=`${(t.clase_vial_edificio||'').trim()} ${(t.desc_vial_edificio||'').trim()}`.trim();
+      return `<div class="sd-item" tabindex="0" data-id="${t.id_terraza}">
+        <span class="sd-nombre">${escHtml(t.rotulo||'Sin nombre')}</span>
+        <span class="sd-dir">${escHtml(calle)}</span>
+      </div>`;
+    }).join('');
+    searchDd.querySelectorAll('.sd-item').forEach(el=>{
+      el.addEventListener('click',()=>flyToTerraza(el.dataset.id));
+      el.addEventListener('keydown',e=>e.key==='Enter'&&flyToTerraza(el.dataset.id));
+    });
+  }
+  searchDd.classList.add('open');
+}
+
+function flyToTerraza(id){
+  const m=marcadores.find(m=>String(m._t.id_terraza)===String(id));
+  if(!m) return;
+  closeDd(); searchInp.value=m._t.rotulo||'';
+  searchClear.style.display='block';
+  map.flyTo([m._lat,m._lng],17,{duration:1});
+  setTimeout(()=>m.fire('click'),1000);
+}
+
+function escHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ═══════════════════════════════════════════
+// CARGAR JSON
+// ═══════════════════════════════════════════
 fetch('data/terrazas.json')
   .then(r=>r.json())
   .then(data=>{
+    todosLosDatos=data;
     data.forEach(t=>{
-      const x=t.coordenada_x_local, y=t.coordenada_y_local;
+      const x=t.coordenada_x_local,y=t.coordenada_y_local;
       if(!x||!y) return;
       const [lat,lng]=utm2ll(x,y);
       if(lat<39.5||lat>41.5||lng<-4.5||lng>-2.5) return;
 
       const m=L.circleMarker([lat,lng],{
-        radius:5, fillColor:C_DESC.f, color:C_DESC.s,
-        weight:1, opacity:0.9, fillOpacity:0.75
+        radius:5,fillColor:C_DESC.f,color:C_DESC.s,
+        weight:1,opacity:0.9,fillOpacity:0.75
       });
 
       m.bindTooltip(t.rotulo||'Sin nombre',{direction:'top',offset:[0,-6]});
       m.bindPopup('',{maxWidth:310});
 
-      m.on('click', async()=>{
-        const popup = m.getPopup();
-        popup.setContent(popupHTML(t, null, resultados[t.id_terraza]?.estimado));
-        map.openPopup(popup, m.getLatLng());
-        if (solActual && solActual.arriba && t.ref_catastral && (!resultados[t.id_terraza] || resultados[t.id_terraza].estimado)) {
-          console.log(`[Catastro] Consultando: ${t.ref_catastral} | ${t.rotulo}`);
-          const plantas = await plantasCatastro(t.ref_catastral);
-          console.log(`[Catastro] → plantas: ${plantas}`);
-          const se = sombraEdificio(solActual.alt, plantas);
-          const sp = sombraPropia(t);
-          resultados[t.id_terraza] = {se, sp, plantas, estimado:false};
-          const c = color(se, sp);
-          m.setStyle({fillColor:c.f, color:c.s});
-          if (m.isPopupOpen()) popup.setContent(popupHTML(t, plantas, false));
+      m.on('click',async()=>{
+        const popup=m.getPopup();
+        popup.setContent(popupHTML(t,null,resultados[t.id_terraza]?.estimado));
+        map.openPopup(popup,m.getLatLng());
+        if(solActual&&solActual.arriba&&t.ref_catastral&&(!resultados[t.id_terraza]||resultados[t.id_terraza].estimado)){
+          const plantas=await plantasCatastro(t.ref_catastral);
+          const se=sombraEdificio(solActual.alt,plantas);
+          const sp=sombraPropia(t);
+          resultados[t.id_terraza]={se,sp,plantas,estimado:false};
+          const c=color(se,sp);
+          m.setStyle({fillColor:c.f,color:c.s});
+          if(m.isPopupOpen()) popup.setContent(popupHTML(t,plantas,false));
         }
       });
 
@@ -556,140 +879,212 @@ fetch('data/terrazas.json')
       m.addTo(map);
       marcadores.push(m);
     });
-    setTimeout(()=>{ document.getElementById('loading').style.display='none'; },400);
+    setTimeout(()=>{document.getElementById('loading').style.display='none';},400);
   })
   .catch(()=>{
     document.querySelector('.ld-sub').textContent='❌ No se encontró data/terrazas.json';
   });
 
-// ═══════════════════════════════════════════════
-// CALCULAR (masivo — estimación solar sin Catastro)
-// El Catastro se consulta al hacer clic en cada terraza
-// ═══════════════════════════════════════════════
-function calcular() {
-  const fecha = document.getElementById('inp-fecha').value;
-  const hora = parseFloat(document.getElementById('slider').value);
-  if (!fecha) { alert('Elige una fecha primero.'); return; }
+// ═══════════════════════════════════════════
+// CALCULAR
+// ═══════════════════════════════════════════
+function calcular(){
+  const fecha=document.getElementById('inp-fecha').value||document.getElementById('inp-fecha-bs').value;
+  const hora=parseFloat(document.getElementById('slider').value);
+  if(!fecha){alert('Elige una fecha primero.');return;}
 
-  const sol = posicionSol(40.416, -3.703, fecha, hora);
-  solActual = sol;
+  const sol=posicionSol(40.416,-3.703,fecha,hora);
+  solActual=sol;
 
-  const btn=document.getElementById('btn-calc');
+  // Actualizar pill móvil
+  const h=Math.floor(hora),mm=(hora%1)*60;
+  const hStr=`${h}:${mm===0?'00':'30'}`;
+  document.getElementById('hora-pill').textContent=`${fecha} · ${hStr}`;
+
+  const btn1=document.getElementById('btn-calc');
+  const btn2=document.getElementById('btn-calc-bs');
   const pb=document.getElementById('prog-bg');
   const pf=document.getElementById('prog-fill');
   const pt=document.getElementById('prog-txt');
-  btn.disabled=true; btn.textContent='⏳ Calculando...';
+  btn1.disabled=btn2.disabled=true;
+  btn1.textContent='⏳ Calculando...';
+  btn2.textContent='⏳ Calculando...';
   pb.style.display='block';
-
-  // Resetear resultados previos
   resultados={};
 
-  let cE=0,cP=0,cS=0, idx=0;
+  let cE=0,cP=0,cS=0,idx=0;
   const total=marcadores.length;
 
-  function chunk() {
+  function chunk(){
     const fin=Math.min(idx+300,total);
     for(let i=idx;i<fin;i++){
-      const m=marcadores[i], t=m._t;
+      const m=marcadores[i],t=m._t;
       const sp=sombraPropia(t);
-
       if(!sol.arriba){
-        // Noche
         resultados[t.id_terraza]={se:true,sp,plantas:null,estimado:false};
-        const c=color(true,sp); m.setStyle({fillColor:c.f,color:c.s});
-        cE++;
-      } else {
-        // Estimación diurna basada en altitud solar
-        // A alta altitud solar (verano mediodía) hay menos sombra de edificios
-        // A baja altitud (mañana/tarde/invierno) los edificios proyectan más sombra
-        const probSombra = Math.max(0.05, Math.min(0.90, (55-sol.alt)/55));
-        // Hash determinista por id para que el resultado sea consistente
+        const c=color(true,sp);m.setStyle({fillColor:c.f,color:c.s});cE++;
+      }else{
+        const prob=Math.max(0.05,Math.min(0.90,(55-sol.alt)/55));
         const hash=((t.id_terraza*2654435761)>>>0)/4294967295;
-        const se = hash < probSombra;
-
+        const se=hash<prob;
         resultados[t.id_terraza]={se,sp,plantas:null,estimado:true};
-        const c=color(se,sp); m.setStyle({fillColor:c.f,color:c.s});
-        if(se) cE++; else if(sp) cP++; else cS++;
+        const c=color(se,sp);m.setStyle({fillColor:c.f,color:c.s});
+        if(se)cE++;else if(sp)cP++;else cS++;
       }
     }
     idx=fin;
     const pct=Math.round(idx/total*100);
-    pf.style.width=pct+'%'; pt.textContent=pct+'%';
+    pf.style.width=pct+'%';pt.textContent=pct+'%';
 
-    if(idx<total){ requestAnimationFrame(chunk); }
-    else {
-      btn.disabled=false; btn.textContent='☀️ Recalcular';
-      pb.style.display='none'; pt.textContent='';
-      // Stats
-      const h=Math.floor(hora), mm=(hora%1)*60;
-      const hStr=`${h}:${mm===0?'00':'30'}`;
+    if(idx<total){requestAnimationFrame(chunk);}
+    else{
+      btn1.disabled=btn2.disabled=false;
+      btn1.textContent='☀️ Recalcular';
+      btn2.textContent='☀️ Calcular sombras';
+      pb.style.display='none';pt.textContent='';
       document.getElementById('st-label').textContent=`${fecha} · ${hStr}h`;
       document.getElementById('st-edif').textContent=cE.toLocaleString('es-ES');
       document.getElementById('st-prop').textContent=cP.toLocaleString('es-ES');
       document.getElementById('st-sol').textContent=cS.toLocaleString('es-ES');
       document.getElementById('stats-box').style.display='block';
       document.getElementById('esquina').innerHTML=
-        `<strong>💡 Tip:</strong> Los colores son una estimación.<br>Haz <strong>clic</strong> en cualquier terraza<br>para consultar el Catastro y obtener<br>la altura exacta del edificio.`;
+        `<strong>💡 Tip:</strong> Los colores son estimaciones.<br>Haz <strong>clic</strong> en una terraza<br>para consultar el Catastro.`;
+      // Cerrar bottom sheet tras calcular
+      closeBS();
     }
   }
   chunk();
 }
 
-// ═══════════════════════════════════════════════
-// UI — slider de hora
-// ═══════════════════════════════════════════════
-document.getElementById('inp-fecha').value = new Date().toISOString().split('T')[0];
+// ═══════════════════════════════════════════
+// UI SYNC — slider fecha/hora (desktop ↔ BS)
+// ═══════════════════════════════════════════
+const today=new Date().toISOString().split('T')[0];
+document.getElementById('inp-fecha').value=today;
+document.getElementById('inp-fecha-bs').value=today;
 
-document.getElementById('slider').addEventListener('input',function(){
-  const v=parseFloat(this.value);
-  const h=Math.floor(v), m=(v%1)*60;
-  document.getElementById('hora-txt').textContent=`${h}:${m===0?'00':'30'}`;
+function syncHora(val){
+  const h=Math.floor(val),m=(val%1)*60;
+  const s=`${h}:${m===0?'00':'30'}`;
+  document.getElementById('hora-txt').textContent=s;
+  document.getElementById('hora-txt-bs').textContent=s;
+  document.getElementById('slider').value=val;
+  document.getElementById('slider-bs').value=val;
+  document.getElementById('hora-pill').textContent=
+    `${document.getElementById('inp-fecha').value||'—'} · ${s}`;
+}
+
+document.getElementById('slider').addEventListener('input',function(){syncHora(parseFloat(this.value));});
+document.getElementById('slider-bs').addEventListener('input',function(){
+  syncHora(parseFloat(this.value));
+  // Sync fecha también
+  const f=document.getElementById('inp-fecha-bs').value;
+  if(f) document.getElementById('inp-fecha').value=f;
+});
+document.getElementById('inp-fecha').addEventListener('change',function(){
+  document.getElementById('inp-fecha-bs').value=this.value;
+});
+document.getElementById('inp-fecha-bs').addEventListener('change',function(){
+  document.getElementById('inp-fecha').value=this.value;
 });
 
-// ═══════════════════════════════════════════════
+document.getElementById('btn-calc-bs').addEventListener('click',()=>{
+  // Sync desde BS
+  const f=document.getElementById('inp-fecha-bs').value;
+  if(f) document.getElementById('inp-fecha').value=f;
+  const v=document.getElementById('slider-bs').value;
+  document.getElementById('slider').value=v;
+  calcular();
+});
+
+// ═══════════════════════════════════════════
+// BOTTOM SHEET
+// ═══════════════════════════════════════════
+function openBS(){
+  document.getElementById('bottom-sheet').classList.add('open');
+  document.getElementById('bs-backdrop').classList.add('open');
+}
+function closeBS(){
+  document.getElementById('bottom-sheet').classList.remove('open');
+  document.getElementById('bs-backdrop').classList.remove('open');
+}
+document.getElementById('fab-main').addEventListener('click',openBS);
+document.getElementById('bs-close').addEventListener('click',closeBS);
+document.getElementById('bs-backdrop').addEventListener('click',closeBS);
+
+// ═══════════════════════════════════════════
+// GEOLOCALIZACIÓN
+// ═══════════════════════════════════════════
+document.getElementById('fab-loc').addEventListener('click',()=>{
+  if(!navigator.geolocation){alert('Tu navegador no soporta geolocalización.');return;}
+  navigator.geolocation.getCurrentPosition(pos=>{
+    map.flyTo([pos.coords.latitude,pos.coords.longitude],15,{duration:1.2});
+  },()=>alert('No se pudo obtener tu ubicación.'));
+});
+
+// ═══════════════════════════════════════════
 // FILTROS
-// ═══════════════════════════════════════════════
-let filtroUbic = 'todas';
-let filtroSombra = 'todas';
+// ═══════════════════════════════════════════
+let filtroUbic='todas', filtroSombra='todas';
 
-function aplicarFiltros() {
-  marcadores.forEach(m => {
-    const t = m._t;
-    let visible = true;
-
-    // Filtro ubicación
-    if (filtroUbic !== 'todas' && t.desc_ubicacion_terraza !== filtroUbic) visible = false;
-
-    // Filtro sombra propia
-    if (filtroSombra === 'con' && !sombraPropia(t)) visible = false;
-    if (filtroSombra === 'sin' && sombraPropia(t)) visible = false;
-
-    if (visible) { if (!map.hasLayer(m)) m.addTo(map); }
-    else { if (map.hasLayer(m)) map.removeLayer(m); }
+function aplicarFiltros(){
+  marcadores.forEach(m=>{
+    const t=m._t;
+    let vis=true;
+    if(filtroUbic!=='todas'&&t.desc_ubicacion_terraza!==filtroUbic) vis=false;
+    if(filtroSombra==='con'&&!sombraPropia(t)) vis=false;
+    if(filtroSombra==='sin'&&sombraPropia(t)) vis=false;
+    vis?(!map.hasLayer(m)&&m.addTo(map)):(map.hasLayer(m)&&map.removeLayer(m));
   });
 }
 
-function setFiltroUbic(btn, val) {
-  filtroUbic = val;
-  btn.closest('.filtros').querySelectorAll('.btn-f').forEach(b => {
-    if (['todas','Acera','Plaza peatonal','Calle peatonal','Bulevar'].includes(
-      b.getAttribute('onclick')?.match(/'([^']+)'\)/)?.[1]
-    )) b.classList.remove('on');
+function setFiltroUbic(btn,val){
+  filtroUbic=val;
+  btn.closest('.filtros').querySelectorAll('.btn-f').forEach(b=>{
+    const m=b.getAttribute('onclick')?.match(/'([^']+)'\)/)?.[1];
+    if(['todas','Acera','Plaza peatonal','Calle peatonal','Bulevar'].includes(m)) b.classList.remove('on');
+  });
+  btn.classList.add('on');
+  aplicarFiltros();
+}
+function setFiltroSombra(btn,val){
+  filtroSombra=val;
+  btn.closest('.filtros').querySelectorAll('.btn-f').forEach(b=>{
+    const m=b.getAttribute('onclick')?.match(/'([^']+)'\)/)?.[1];
+    if(['todas','con','sin'].includes(m)) b.classList.remove('on');
   });
   btn.classList.add('on');
   aplicarFiltros();
 }
 
-function setFiltroSombra(btn, val) {
-  filtroSombra = val;
-  btn.closest('.filtros').querySelectorAll('.btn-f').forEach(b => {
-    if (['todas','con','sin'].includes(
-      b.getAttribute('onclick')?.match(/'([^']+)'\)/)?.[1]
-    )) b.classList.remove('on');
+// Chips de bottom sheet
+document.getElementById('chips-ubic').addEventListener('click',e=>{
+  const chip=e.target.closest('.bs-chip'); if(!chip) return;
+  document.getElementById('chips-ubic').querySelectorAll('.bs-chip').forEach(c=>c.classList.remove('on'));
+  chip.classList.add('on');
+  filtroUbic=chip.dataset.val;
+  // Sync desktop
+  document.querySelectorAll('.filtros .btn-f').forEach(b=>{
+    const m=b.getAttribute('onclick')?.match(/'([^']+)'\)/)?.[1];
+    if(m===filtroUbic) b.classList.add('on');
+    else if(['todas','Acera','Plaza peatonal','Calle peatonal','Bulevar'].includes(m)) b.classList.remove('on');
   });
-  btn.classList.add('on');
   aplicarFiltros();
-}
+});
+
+document.getElementById('chips-sombra').addEventListener('click',e=>{
+  const chip=e.target.closest('.bs-chip'); if(!chip) return;
+  document.getElementById('chips-sombra').querySelectorAll('.bs-chip').forEach(c=>c.classList.remove('on'));
+  chip.classList.add('on');
+  filtroSombra=chip.dataset.val;
+  document.querySelectorAll('.filtros .btn-f').forEach(b=>{
+    const m=b.getAttribute('onclick')?.match(/'([^']+)'\)/)?.[1];
+    if(m===filtroSombra) b.classList.add('on');
+    else if(['todas','con','sin'].includes(m)) b.classList.remove('on');
+  });
+  aplicarFiltros();
+});
+
 </script>
 </body>
 </html>
