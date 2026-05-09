@@ -182,7 +182,13 @@ header {
   font-size: 0.72rem; color: var(--texto2); white-space: nowrap;
 }
 .ley-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-@media (max-width: 640px) { .leyenda-header { display: none; } }
+@media (max-width: 640px) {
+  .leyenda-header { display: none; }
+  .logo-txt { display: none; }
+  .search-wrap { max-width: none; }
+  header { padding: 0 12px; height: 60px; }
+  .search-input { font-size: 1rem; padding: 10px 40px 10px 42px; }
+}
 
 /* Search */
 .search-wrap {
@@ -627,7 +633,7 @@ input[type="date"].bs-input:focus { border-color: var(--acento); }
   </div>
   <div class="search-wrap">
     <span class="search-icon">🔍</span>
-    <input class="search-input" id="search-inp" type="text" placeholder="Buscar terraza o calle…" autocomplete="off">
+    <input class="search-input" id="search-inp" type="text" placeholder="Buscar barrio, calle, metro…" autocomplete="off">
     <button class="search-clear" id="search-clear">×</button>
     <div class="search-dropdown" id="search-dd"></div>
   </div>
