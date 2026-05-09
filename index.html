@@ -812,27 +812,74 @@ function posicionSol(lat,lng,fecha,horaH){
   if(ha>0) az=360-az;
   return {alt,az,arriba:alt>3};
 }
-
-async function plantasCatastro(rc){
-  if(!rc||rc.length<14) return null;
-  const url=`https://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/OVCCallejero.asmx/Consulta_DNPRC?Provincia=&Municipio=&RC=${encodeURIComponent(rc.substring(0,14))}`;
-  try{
-    const r=await fetch(url); if(!r.ok) return null;
-    const xml=new DOMParser().parseFromString(await r.text(),'text/xml');
-    let max=-1;
-    for(const el of xml.getElementsByTagName('pt')){const v=parseInt(el.textContent);if(!isNaN(v)&&v>=0)max=Math.max(max,v);}
-    if(max>=0) return max+1;
-    let m2=0;
-    for(const el of xml.getElementsByTagName('nump')){m2=Math.max(m2,parseInt(el.textContent)||0);}
-    for(const el of xml.getElementsByTagName('nplp')){m2=Math.max(m2,parseInt(el.textContent)||0);}
-    return m2>0?m2:null;
-  }catch{return null;}
+function offsetUTC(fecha){
+  const d=new Date(fecha+'T12:00:00'),y=d.getFullYear();
+  const lsm=new Date(y,2,31); lsm.setDate(31-lsm.getDay());
+  const lso=new Date(y,9,31); lso.setDate(31-lso.getDay());
+  return (d>=lsm&&d<lso)?2:1;
 }
 
-function sombraEdificio(altSol,plantas){
-  if(altSol<=0) return true;
-  if(!plantas) return false;
-  return (plantas*3)/Math.tan(altSol*Math.PI/180)>=7;
+const _osmCache={};
+async function edificiosOSM(lat,lng){
+  const key=`${lat.toFixed(4)},${lng.toFixed(4)}`;
+  if(_osmCache[key]) return _osmCache[key];
+  const q=`[out:json][timeout:15];way(around:80,${lat},${lng})[building];out geom;`;
+  const endpoints=['https://overpass-api.de/api/interpreter','https://overpass.karte.mi.it/api/interpreter'];
+  try{
+    let r=null;
+    for(const ep of endpoints){r=await fetch(`${ep}?data=${encodeURIComponent(q)}`);if(r.ok)break;}
+    if(!r||!r.ok) return [];
+    const data=await r.json();
+    const edifs=(data.elements||[]).filter(el=>el.geometry?.length>2).map(el=>{
+      const tags=el.tags||{};
+      let h=10;
+      if(tags.height) h=parseFloat(tags.height)||10;
+      else if(tags['building:levels']) h=(parseFloat(tags['building:levels'])||3)*3.2;
+      return {h,pts:el.geometry.map(n=>({lat:n.lat,lng:n.lon}))};
+    });
+    _osmCache[key]=edifs;
+    return edifs;
+  }catch{return [];}
+}
+function _toM(lat0,lng0,lat,lng){
+  const R=6371000,D=Math.PI/180;
+  return {x:(lng-lng0)*D*R*Math.cos(lat0*D),y:(lat-lat0)*D*R};
+}
+function _pip(pts){
+  let inside=false;
+  for(let i=0,j=pts.length-1;i<pts.length;j=i++){
+    const xi=pts[i].x,yi=pts[i].y,xj=pts[j].x,yj=pts[j].y;
+    if(((yi>0)!==(yj>0))&&(0<(xj-xi)*(0-yi)/(yj-yi)+xi)) inside=!inside;
+  }
+  return inside;
+}
+function _raySegT(dx,dy,ax,ay,bx,by){
+  const ex=bx-ax,ey=by-ay,den=dx*ey-dy*ex;
+  if(Math.abs(den)<1e-9) return null;
+  const t=(ax*ey-ay*ex)/den,s=(ax*dy-ay*dx)/den;
+  return (t>0&&s>=0&&s<=1)?t:null;
+}
+async function sombraOSM(lat,lng,altSol,azSol){
+  if(altSol<=0) return {sombra:true,alturaMax:null};
+  const edifs=await edificiosOSM(lat,lng);
+  if(!edifs.length) return {sombra:false,alturaMax:null};
+  const altR=altSol*Math.PI/180,azR=azSol*Math.PI/180;
+  const dx=Math.sin(azR),dy=Math.cos(azR);
+  let alturaMax=0,sombra=false;
+  for(const e of edifs){
+    const pts=e.pts.map(p=>_toM(lat,lng,p.lat,p.lng));
+    if(_pip(pts)) continue;
+    let tMin=Infinity;
+    for(let i=0;i<pts.length-1;i++){
+      const t=_raySegT(dx,dy,pts[i].x,pts[i].y,pts[i+1].x,pts[i+1].y);
+      if(t!==null&&t>3) tMin=Math.min(tMin,t);
+    }
+    if(tMin<Infinity){
+      if(e.h>alturaMax) alturaMax=e.h;
+      if(e.h>tMin*Math.tan(altR)) sombra=true;
+    }
+  }
+  return {sombra,alturaMax:alturaMax||null};
 }
 function sombraPropia(t){
   return (t.sombrillas_es>0)||(t.toldos_pavimento_es>0)||
@@ -858,7 +905,7 @@ let marcadores=[], resultados={}, solActual=null, todosLosDatos=[];
 
 function fmtH(h){return h?h.substring(0,5):'—';}
 
-function popupHTML(t,plantas,esEstimado){
+function popupHTML(t,alturaMax,esEstimado){
   const res=resultados[t.id_terraza];
   const barrio=(t.desc_barrio_local||'').trim();
   const calle=`${(t.clase_vial_edificio||'').trim()} ${(t.desc_vial_edificio||'').trim()}`.trim();
@@ -869,7 +916,7 @@ function popupHTML(t,plantas,esEstimado){
   }else if(!solActual.arriba){
     estadoHTML=`<div class="pi-estado est-noche">🌙 Es de noche a esa hora</div>`;
   }else if(!res){
-    estadoHTML=`<div class="pi-estado est-cargando">⏳ Consultando Catastro…</div>`;
+    estadoHTML=`<div class="pi-estado est-cargando">⏳ Consultando edificios…</div>`;
   }else{
     const sE=res.se,sP=res.sp;
     if(sE&&sP) estadoHTML=`<div class="pi-estado est-edif-prop">🌿 Sombra de edificio + toldo</div>`;
@@ -877,9 +924,9 @@ function popupHTML(t,plantas,esEstimado){
     else if(sP) estadoHTML=`<div class="pi-estado est-prop">⛱️ Sombra propia (toldo/sombrilla)</div>`;
     else        estadoHTML=`<div class="pi-estado est-sol">☀️ Al sol pleno a esta hora</div>`;
   }
-  const pTxt=plantas?`${plantas} plantas (~${plantas*3}m)`:(res?.plantas?`${res.plantas} plantas`:'Consultando…');
+  const pTxt=alturaMax?`${alturaMax.toFixed(0)}m (OSM)`:(res?.alturaMax?`${res.alturaMax.toFixed(0)}m (OSM)`:'Consultando…');
   const solTxt=solActual?`Alt. ${solActual.alt.toFixed(1)}°, Az. ${solActual.az.toFixed(0)}°`:'—';
-  const estimTxt=esEstimado?`<div class="pi-estimado">* Estimación. Toca para datos exactos del Catastro.</div>`:'';
+  const estimTxt=esEstimado?`<div class="pi-estimado">* Estimación. Toca para datos exactos.</div>`:'';
   return `<div class="pi">
     <div class="pi-nombre">${t.rotulo||'Sin nombre'}</div>
     <div class="pi-dir">${calle}${num?', '+num:''} · ${barrio}</div>
@@ -967,14 +1014,13 @@ fetch('data/terrazas.json')
         const popup=m.getPopup();
         popup.setContent(popupHTML(t,null,resultados[t.id_terraza]?.estimado));
         map.openPopup(popup,m.getLatLng());
-        if(solActual&&solActual.arriba&&t.ref_catastral&&(!resultados[t.id_terraza]||resultados[t.id_terraza].estimado)){
-          const plantas=await plantasCatastro(t.ref_catastral);
-          const se=sombraEdificio(solActual.alt,plantas);
+        if(solActual&&solActual.arriba&&(!resultados[t.id_terraza]||resultados[t.id_terraza].estimado)){
+          const {sombra:se,alturaMax}=await sombraOSM(m._lat,m._lng,solActual.alt,solActual.az);
           const sp=sombraPropia(t);
-          resultados[t.id_terraza]={se,sp,plantas,estimado:false};
+          resultados[t.id_terraza]={se,sp,alturaMax,estimado:false};
           const c=colorMarcador(se,sp);
           m.setStyle({fillColor:c.f,color:c.s});
-          if(m.isPopupOpen()) popup.setContent(popupHTML(t,plantas,false));
+          if(m.isPopupOpen()) popup.setContent(popupHTML(t,alturaMax,false));
         }
       });
       m._t=t; m._lat=lat; m._lng=lng;
@@ -1005,7 +1051,7 @@ function calcular(){
   const fecha=document.getElementById('inp-fecha').value||document.getElementById('inp-fecha-bs').value;
   const hora=parseFloat(document.getElementById('slider').value);
   if(!fecha){alert('Elige una fecha primero.');return;}
-  const sol=posicionSol(40.416,-3.703,fecha,hora);
+  const sol=posicionSol(40.416,-3.703,fecha,hora-offsetUTC(fecha));
   solActual=sol;
   const h=Math.floor(hora),mm=(hora%1)*60;
   const hStr=`${h}:${mm===0?'00':'30'}`;
