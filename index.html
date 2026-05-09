@@ -237,6 +237,17 @@ header {
 .sd-nombre { font-size: 0.85rem; font-weight: 600; color: var(--texto); }
 .sd-dir { font-size: 0.73rem; color: var(--texto2); }
 .sd-empty { padding: 14px; text-align: center; color: var(--texto2); font-size: 0.82rem; }
+.sd-section { padding: 5px 14px 3px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--texto2); }
+.sd-divider { border: none; border-top: 1px solid var(--borde); margin: 4px 0; }
+.sd-place {
+  padding: 8px 14px; cursor: pointer; display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid var(--borde); transition: background 0.1s;
+}
+.sd-place:last-child { border-bottom: none; }
+.sd-place:hover { background: var(--panel2); }
+.sd-place-icon { font-size: 0.8rem; flex-shrink: 0; opacity: 0.7; }
+.sd-place-body { display: flex; flex-direction: column; gap: 1px; }
+.sd-loading { padding: 8px 14px; font-size: 0.75rem; color: var(--texto2); font-style: italic; }
 
 /* ── BARRA DE CONTROLES DESKTOP ── */
 .controles-desktop {
@@ -948,42 +959,108 @@ function popupHTML(t,alturaMax,esEstimado){
 const searchInp=document.getElementById('search-inp');
 const searchDd=document.getElementById('search-dd');
 const searchClear=document.getElementById('search-clear');
-let searchTimeout=null;
+let searchTimeout=null, photonCtrl=null, ddSid=0;
+
 searchInp.addEventListener('input',()=>{
   const q=searchInp.value.trim();
   searchClear.style.display=q?'block':'none';
   clearTimeout(searchTimeout);
   if(q.length<2){closeDd();return;}
-  searchTimeout=setTimeout(()=>doSearch(q),180);
+  searchTimeout=setTimeout(()=>doSearch(q),250);
 });
 searchInp.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDd();searchInp.blur();}});
 searchClear.addEventListener('click',()=>{searchInp.value='';searchClear.style.display='none';closeDd();});
 document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))closeDd();});
-function closeDd(){searchDd.classList.remove('open');searchDd.innerHTML='';}
+
+function closeDd(){ddSid++;searchDd.classList.remove('open');searchDd.innerHTML='';}
+
 function doSearch(q){
+  const sid=++ddSid;
   const ql=q.toLowerCase();
-  const res=todosLosDatos.filter(t=>{
+  const localRes=todosLosDatos.filter(t=>{
     const n=(t.rotulo||'').toLowerCase();
     const c=`${t.clase_vial_edificio||''} ${t.desc_vial_edificio||''}`.toLowerCase();
     return n.includes(ql)||c.includes(ql);
-  }).slice(0,8);
-  if(res.length===0){
-    searchDd.innerHTML=`<div class="sd-empty">Sin resultados para "${escHtml(q)}"</div>`;
-  }else{
-    searchDd.innerHTML=res.map(t=>{
+  }).slice(0,4);
+
+  renderDd(sid,localRes,null);
+
+  if(photonCtrl) photonCtrl.abort();
+  photonCtrl=new AbortController();
+  fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&bbox=-3.93,40.31,-3.52,40.64&limit=6`,{signal:photonCtrl.signal})
+    .then(r=>r.json())
+    .then(d=>{if(ddSid===sid) renderDd(sid,localRes,d.features||[]);})
+    .catch(e=>{if(e.name!=='AbortError'&&ddSid===sid) renderDd(sid,localRes,[]);});
+}
+
+function renderDd(sid,localRes,places){
+  if(ddSid!==sid) return;
+  let html='';
+
+  if(localRes.length>0){
+    html+=`<div class="sd-section">Terrazas</div>`;
+    html+=localRes.map(t=>{
       const calle=`${(t.clase_vial_edificio||'').trim()} ${(t.desc_vial_edificio||'').trim()}`.trim();
       return `<div class="sd-item" tabindex="0" data-id="${t.id_terraza}">
         <span class="sd-nombre">${escHtml(t.rotulo||'Sin nombre')}</span>
         <span class="sd-dir">${escHtml(calle)}</span>
       </div>`;
     }).join('');
-    searchDd.querySelectorAll('.sd-item').forEach(el=>{
-      el.addEventListener('click',()=>flyToTerraza(el.dataset.id));
-      el.addEventListener('keydown',e=>e.key==='Enter'&&flyToTerraza(el.dataset.id));
-    });
   }
+
+  if(places===null){
+    html+=`<hr class="sd-divider"><div class="sd-loading">Buscando lugares…</div>`;
+  } else if(places.length>0){
+    if(localRes.length>0) html+=`<hr class="sd-divider">`;
+    html+=`<div class="sd-section">Lugares</div>`;
+    html+=places.map(f=>{
+      const p=f.properties;
+      const name=p.name||p.street||'';
+      if(!name) return '';
+      const tipo=photonLabel(p);
+      const[lng,lat]=f.geometry.coordinates;
+      const zoom=photonZoom(p);
+      return `<div class="sd-place" tabindex="0" data-lat="${lat}" data-lng="${lng}" data-zoom="${zoom}">
+        <span class="sd-place-icon">📍</span>
+        <div class="sd-place-body">
+          <span class="sd-nombre">${escHtml(name)}</span>
+          <span class="sd-dir">${escHtml(tipo)}</span>
+        </div>
+      </div>`;
+    }).join('');
+  } else if(localRes.length===0){
+    html=`<div class="sd-empty">Sin resultados</div>`;
+  }
+
+  searchDd.innerHTML=html;
   searchDd.classList.add('open');
+  searchDd.querySelectorAll('.sd-item').forEach(el=>{
+    el.addEventListener('click',()=>flyToTerraza(el.dataset.id));
+    el.addEventListener('keydown',e=>e.key==='Enter'&&flyToTerraza(el.dataset.id));
+  });
+  searchDd.querySelectorAll('.sd-place').forEach(el=>{
+    el.addEventListener('click',()=>flyToPlace(+el.dataset.lat,+el.dataset.lng,+el.dataset.zoom));
+    el.addEventListener('keydown',e=>e.key==='Enter'&&flyToPlace(+el.dataset.lat,+el.dataset.lng,+el.dataset.zoom));
+  });
 }
+
+function photonLabel(p){
+  const tipos={neighbourhood:'Barrio',suburb:'Barrio',quarter:'Barrio',district:'Distrito',
+    city_district:'Distrito',street:'Calle',house:'Dirección',station:'Metro',
+    stop:'Parada',square:'Plaza',park:'Parque',city:'Ciudad'};
+  const t=tipos[p.osm_value]||tipos[p.type]||p.type||'';
+  const extra=p.district&&p.district!==p.name?p.district:(p.city&&p.city!==p.name?p.city:'');
+  return [t,extra].filter(Boolean).join(' · ');
+}
+
+function photonZoom(p){
+  const t=p.osm_value||p.type||'';
+  if(['neighbourhood','suburb','quarter','district','city_district'].includes(t)) return 15;
+  if(['street','square','park'].includes(t)) return 16;
+  if(['station','stop','house'].includes(t)) return 17;
+  return 14;
+}
+
 function flyToTerraza(id){
   const m=marcadores.find(m=>String(m._t.id_terraza)===String(id));
   if(!m) return;
@@ -992,6 +1069,12 @@ function flyToTerraza(id){
   map.flyTo([m._lat,m._lng],17,{duration:1});
   setTimeout(()=>m.fire('click'),1000);
 }
+
+function flyToPlace(lat,lng,zoom){
+  closeDd();
+  map.flyTo([lat,lng],zoom,{duration:1});
+}
+
 function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 // CARGA JSON
