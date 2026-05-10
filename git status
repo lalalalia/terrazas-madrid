@@ -1,0 +1,154 @@
+warning: in the working copy of 'index.html', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/index.html b/index.html[m
+[1mindex b33f995..c057475 100644[m
+[1m--- a/index.html[m
+[1m+++ b/index.html[m
+[36m@@ -310,6 +310,34 @@[m [minput[type="range"]::-webkit-slider-thumb {[m
+ .btn-calc:active { transform: translateY(0); opacity: 1; }[m
+ .btn-calc:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }[m
+ [m
+[32m+[m[32m/* ── AHORA / SIMULAR ── */[m
+[32m+[m[32m.btn-ahora {[m
+[32m+[m[32m  background: var(--acento); color: #fff; border: 1.5px solid transparent;[m
+[32m+[m[32m  border-radius: 10px; padding: 7px 14px; font-size: 0.84rem;[m
+[32m+[m[32m  font-family: 'Syne', sans-serif; font-weight: 800;[m
+[32m+[m[32m  cursor: pointer; white-space: nowrap; transition: all 0.15s;[m
+[32m+[m[32m}[m
+[32m+[m[32m.btn-ahora.inactivo {[m
+[32m+[m[32m  background: var(--panel2); color: var(--texto2); border-color: var(--borde);[m
+[32m+[m[32m}[m
+[32m+[m[32m.btn-ahora.inactivo:hover { border-color: var(--acento); color: var(--texto); }[m
+[32m+[m[32m.chip-estado {[m
+[32m+[m[32m  background: #E5F9F0; color: #006B42;[m
+[32m+[m[32m  border-radius: 100px; padding: 4px 12px;[m
+[32m+[m[32m  font-size: 0.78rem; font-weight: 600; white-space: nowrap;[m
+[32m+[m[32m}[m
+[32m+[m[32m.chip-estado.simulando { background: #FFF3CC; color: #7A5000; }[m
+[32m+[m[32m.btn-simular {[m
+[32m+[m[32m  background: var(--panel); border: 1.5px solid var(--borde);[m
+[32m+[m[32m  color: var(--texto2); border-radius: 10px;[m
+[32m+[m[32m  padding: 7px 14px; font-size: 0.84rem;[m
+[32m+[m[32m  font-family: 'DM Sans', sans-serif; font-weight: 500;[m
+[32m+[m[32m  cursor: pointer; white-space: nowrap; transition: all 0.15s;[m
+[32m+[m[32m}[m
+[32m+[m[32m.btn-simular:hover { border-color: var(--acento); color: var(--texto); }[m
+[32m+[m[32m.btn-simular.activo { background: var(--acento2); border-color: var(--acento2); color: #5A3800; font-weight: 700; }[m
+[32m+[m[32minput[type="range"]:disabled { opacity: 0.3; cursor: not-allowed; }[m
+[32m+[m
+ .prog-wrap { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--texto2); }[m
+ .prog-bg { width: 90px; height: 4px; background: var(--borde); border-radius: 4px; overflow: hidden; display: none; }[m
+ .prog-fill { height: 100%; background: var(--acento); border-radius: 4px; transition: width 0.2s; width: 0%; }[m
+[36m@@ -589,6 +617,45 @@[m [minput[type="date"].bs-input:focus { border-color: var(--acento); }[m
+   font-size: 0.75rem !important; border-radius: 7px !important;[m
+   box-shadow: 0 3px 10px rgba(0,0,0,0.1) !important; padding: 4px 9px !important;[m
+ }[m
+[32m+[m
+[32m+[m[32m/* ── CHOROPLETH ── */[m
+[32m+[m[32m.zona-tooltip {[m
+[32m+[m[32m  background: transparent !important; border: none !important;[m
+[32m+[m[32m  box-shadow: none !important; padding: 0 !important;[m
+[32m+[m[32m}[m
+[32m+[m[32m.zona-label { text-align: center; line-height: 1.25; pointer-events: none; }[m
+[32m+[m[32m.zona-popular {[m
+[32m+[m[32m  display: block;[m
+[32m+[m[32m  font-family: 'DM Sans', sans-serif; font-weight: 600;[m
+[32m+[m[32m  font-size: 0.82rem; color: var(--texto); letter-spacing: 0.01em;[m
+[32m+[m[32m}[m
+[32m+[m[32m.zona-oficial { display: block; font-size: 0.58rem; color: var(--texto2); }[m
+[32m+[m[32m.zona-count   { display: block; font-size: 0.78rem; font-weight: 700; color: var(--acento); margin-top: 2px; }[m
+[32m+[m
+[32m+[m[32m/* ── NAV CHOROPLETH ── */[m
+[32m+[m[32m#nav-choropleth {[m
+[32m+[m[32m  position: absolute; top: 10px; left: 50%;[m
+[32m+[m[32m  transform: translateX(-50%);[m
+[32m+[m[32m  z-index: 900; display: none;[m
+[32m+[m[32m  align-items: center; gap: 8px;[m
+[32m+[m[32m}[m
+[32m+[m[32m#nav-choropleth.visible { display: flex; }[m
+[32m+[m[32m#btn-volver {[m
+[32m+[m[32m  background: var(--panel); border: 1.5px solid var(--borde);[m
+[32m+[m[32m  border-radius: 100px; padding: 5px 14px 5px 10px;[m
+[32m+[m[32m  font-family: 'DM Sans', sans-serif; font-size: 0.8rem;[m
+[32m+[m[32m  cursor: pointer; box-shadow: 0 2px 12px rgba(0,0,0,0.1);[m
+[32m+[m[32m  display: flex; align-items: center; gap: 5px; color: var(--texto);[m
+[32m+[m[32m  white-space: nowrap;[m
+[32m+[m[32m}[m
+[32m+[m[32m#btn-volver:hover { border-color: var(--acento); }[m
+[32m+[m[32m#nav-label {[m
+[32m+[m[32m  background: var(--panel); border: 1.5px solid var(--borde2);[m
+[32m+[m[32m  border-radius: 100px; padding: 5px 14px;[m
+[32m+[m[32m  font-family: 'Syne', sans-serif; font-weight: 700;[m
+[32m+[m[32m  font-size: 0.78rem; color: var(--acento);[m
+[32m+[m[32m  box-shadow: 0 2px 12px rgba(0,0,0,0.08); white-space: nowrap;[m
+[32m+[m[32m}[m
+ </style>[m
+ </head>[m
+ <body>[m
+[36m@@ -647,11 +714,13 @@[m [minput[type="date"].bs-input:focus { border-color: var(--acento); }[m
+ [m
+ <!-- CONTROLES DESKTOP -->[m
+ <div class="controles-desktop">[m
+[31m-  <span class="ctrl-label">📅 Fecha</span>[m
+[31m-  <input type="date" id="inp-fecha">[m
+[32m+[m[32m  <input type="date" id="inp-fecha" style="display:none">[m
+[32m+[m[32m  <button class="btn-ahora" id="btn-ahora">☀️ Ahora</button>[m
+[32m+[m[32m  <div class="chip-estado" id="chip-estado"><span id="chip-txt">—</span></div>[m
+   <div class="ctrl-sep"></div>[m
+[31m-  <span class="ctrl-label">🕐 Hora</span>[m
+[31m-  <input type="range" id="slider" min="6" max="22" step="0.5" value="14">[m
+[32m+[m[32m  <button class="btn-simular" id="btn-simular">Simular hora</button>[m
+[32m+[m[32m  <span class="ctrl-label">HORA</span>[m
+[32m+[m[32m  <input type="range" id="slider" min="6" max="22" step="0.5" value="14" disabled>[m
+   <span class="hora-display" id="hora-txt">14:00</span>[m
+   <div class="ctrl-sep"></div>[m
+   <button class="btn-calc" id="btn-calc" onclick="calcular()">☀️ Calcular sombras</button>[m
+[36m@@ -680,6 +749,12 @@[m [minput[type="date"].bs-input:focus { border-color: var(--acento); }[m
+ <div id="map"></div>[m
+ <div id="hora-pill">😎 — : —</div>[m
+ [m
+[32m+[m[32m<!-- NAV CHOROPLETH -->[m
+[32m+[m[32m<div id="nav-choropleth">[m
+[32m+[m[32m  <button id="btn-volver">← Volver</button>[m
+[32m+[m[32m  <span id="nav-label"></span>[m
+[32m+[m[32m</div>[m
+[32m+[m
+ <!-- STATS -->[m
+ <div id="stats-box">[m
+   <span id="st-label">—</span><br>[m
+[36m@@ -912,12 +987,27 @@[m [mfunction colorMarcador(sE,sP){[m
+ const C_DESC={f:'#C0B0A0',s:'#A09080'};[m
+ [m
+ // MAPA[m
+[31m-const map=L.map('map',{zoomControl:false}).setView([40.416,-3.703],13);[m
+[32m+[m[32mconst map=L.map('map',{zoomControl:false}).setView([40.416,-3.703],12);[m
+ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{[m
+   attribution:'© OpenStreetMap © CARTO',subdomains:'abcd',maxZoom:19[m
+ }).addTo(map);[m
+ L.control.zoom({position:'topright'}).addTo(map);[m
+ [m
+[32m+[m[32mlet _navLock=false;[m
+[32m+[m[32mmap.on('zoomend',()=>{[m
+[32m+[m[32m  if(_navLock)return;[m
+[32m+[m[32m  const z=map.getZoom();[m
+[32m+[m[32m  if(estadoMapa==='marcadores'&&z<=12){[m
+[32m+[m[32m    _navLock=true;[m
+[32m+[m[32m    if(distritoActivo)irABarrios(distritoActivo);else irADistritos();[m
+[32m+[m[32m    setTimeout(()=>_navLock=false,1500);[m
+[32m+[m[32m  }else if(estadoMapa==='barrios'&&z<=11){[m
+[32m+[m[32m    _navLock=true;[m
+[32m+[m[32m    irADistritos();[m
+[32m+[m[32m    setTimeout(()=>_navLock=false,1500);[m
+[32m+[m[32m  }[m
+[32m+[m[32m});[m
+[32m+[m
+ let marcadores=[], resultados={}, solActual=null, todosLosDatos=[];[m
+ [m
+ function fmtH(h){return h?h.substring(0,5):'—';}[m
+[36m@@ -961,7 +1051,147 @@[m [mfunction popupHTML(t,alturaMax,esEstimado){[m
+   </div>`;[m
+ }[m
+ [m
+[31m-// BÚSQUEDA[m
+[32m+[m[32m// ── NOMBRES POPULARES ──[m
+[32m+[m[32mconst NOMBRES_POP={[m
+[32m+[m[32m  'Universidad':'Malasaña','Embajadores':'Lavapiés','Justi

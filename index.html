@@ -373,42 +373,68 @@ input[type="range"]::-webkit-slider-thumb {
   display: none;
 }
 #stats-box strong { color: var(--texto); font-weight: 700; }
-@media (max-width: 640px) { #stats-box { right: 12px; bottom: 100px; } }
+@media (max-width: 640px) { #stats-box { right: 12px; bottom: 130px; } }
 
 /* ── FAB MOBILE ── */
-.fab-wrap {
-  display: none;
-  position: fixed; bottom: 24px; right: 16px;
-  z-index: 1400; flex-direction: column; gap: 10px; align-items: flex-end;
-}
-@media (max-width: 640px) { .fab-wrap { display: flex; } }
-
 .fab-loc {
+  display: none;
+  position: fixed; bottom: calc(24px + env(safe-area-inset-bottom,0px)); right: 16px;
+  z-index: 1400;
   width: 44px; height: 44px; border-radius: 50%;
   background: var(--panel); border: 1.5px solid var(--borde);
   color: var(--azul); font-size: 18px;
-  display: flex; align-items: center; justify-content: center;
+  align-items: center; justify-content: center;
   cursor: pointer; transition: transform 0.15s;
   box-shadow: 0 2px 12px rgba(0,0,0,0.12);
 }
+@media (max-width: 640px) { .fab-loc { display: flex; } }
 .fab-loc:active { transform: scale(0.92); }
 
-/* CTA principal mobile */
+/* CTA centrado — Citymapper style */
+.fab-center-wrap {
+  display: none;
+  position: fixed;
+  bottom: calc(24px + env(safe-area-inset-bottom,0px));
+  left: 50%; transform: translateX(-50%);
+  z-index: 1400;
+  flex-direction: column; align-items: center; gap: 8px;
+}
+@media (max-width: 640px) { .fab-center-wrap { display: flex; } }
+
 .fab-cta {
-  height: 52px;
-  border-radius: 26px;
-  background: var(--acento);
-  color: #fff; border: none;
+  height: 52px; border-radius: 26px;
+  background: var(--acento); color: #fff; border: none;
   display: flex; align-items: center; gap: 10px;
-  padding: 0 20px 0 16px;
-  font-family: 'Syne', sans-serif; font-weight: 800;
-  font-size: 0.95rem; cursor: pointer;
-  box-shadow: 0 4px 20px rgba(255,92,26,0.35);
-  transition: transform 0.15s, opacity 0.15s;
-  white-space: nowrap;
+  padding: 0 22px 0 18px;
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.95rem;
+  cursor: pointer; box-shadow: 0 4px 20px rgba(255,92,26,0.35);
+  transition: transform 0.15s, opacity 0.15s; white-space: nowrap;
 }
 .fab-cta:active { transform: scale(0.95); }
 .fab-cta-icon { font-size: 20px; }
+
+.fab-quick-row { display: flex; gap: 8px; }
+.fab-quick {
+  height: 36px; border-radius: 18px; border: none;
+  padding: 0 16px;
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.8rem;
+  cursor: pointer; white-space: nowrap; letter-spacing: 0.01em;
+  transition: transform 0.15s; box-shadow: 0 2px 14px rgba(0,0,0,0.22);
+}
+.fab-quick:active { transform: scale(0.95); }
+.fab-sol    { background: var(--rojo);  color: #fff; }
+.fab-sombra { background: var(--verde); color: #fff; }
+
+#toast {
+  position: fixed; bottom: 160px; left: 50%;
+  transform: translateX(-50%);
+  background: rgba(26,18,8,0.88); color: #fff;
+  padding: 10px 22px; border-radius: 100px;
+  font-size: 0.85rem; font-family: 'DM Sans', sans-serif;
+  z-index: 3000; opacity: 0; transition: opacity 0.22s;
+  pointer-events: none; white-space: nowrap;
+}
+#toast.show { opacity: 1; }
 
 /* ── BOTTOM SHEET ── */
 .bs-backdrop {
@@ -689,13 +715,18 @@ input[type="date"].bs-input:focus { border-color: var(--acento); }
 </div>
 
 <!-- FAB MOBILE -->
-<div class="fab-wrap">
-  <button class="fab-loc" id="fab-loc" title="Mi ubicación">📍</button>
+<button class="fab-loc" id="fab-loc" title="Mi ubicación">📍</button>
+<div class="fab-center-wrap">
   <button class="fab-cta" id="fab-main">
     <span class="fab-cta-icon">☀️</span>
     <span id="fab-label">¿A qué hora vas?</span>
   </button>
+  <div class="fab-quick-row">
+    <button class="fab-quick fab-sol" id="btn-sol-ahora">☀️ Sol ahora</button>
+    <button class="fab-quick fab-sombra" id="btn-sombra-ahora">🌿 Sombra ahora</button>
+  </div>
 </div>
+<div id="toast"></div>
 
 <!-- BACKDROP -->
 <div class="bs-backdrop" id="bs-backdrop"></div>
@@ -920,6 +951,63 @@ L.control.zoom({position:'topright'}).addTo(map);
 
 let marcadores=[], resultados={}, solActual=null, todosLosDatos=[];
 
+function getMkRadius(){const z=map.getZoom();if(z<=11)return 2;if(z<=13)return 3;if(z<=14)return 4;return 5;}
+function getMkOpacity(){const z=map.getZoom();if(z<=11)return 0.15;if(z<=12)return 0.4;if(z<=13)return 0.6;return 0.78;}
+function updateMkSizes(){const r=getMkRadius(),o=getMkOpacity();marcadores.forEach(m=>{m.setRadius(r);m.setStyle({fillOpacity:o,opacity:o});});}
+map.on('zoomend',updateMkSizes);
+
+function distM(la1,lo1,la2,lo2){const R=6371000,D=Math.PI/180,dlat=(la2-la1)*D,dlng=(lo2-lo1)*D;const a=Math.sin(dlat/2)**2+Math.cos(la1*D)*Math.cos(la2*D)*Math.sin(dlng/2)**2;return R*2*Math.asin(Math.sqrt(a));}
+function mostrarToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._tid);t._tid=setTimeout(()=>t.classList.remove('show'),2600);}
+
+let modoRapido=null;
+
+function setAhora(){
+  const now=new Date();
+  const f=now.toISOString().split('T')[0];
+  const h=Math.min(22,Math.max(6,now.getHours()+now.getMinutes()/60));
+  document.getElementById('inp-fecha').value=f;
+  document.getElementById('inp-fecha-bs').value=f;
+  syncHora(h);
+}
+
+function filtrarPorModoRapido(modo){
+  if(modo==='sol'&&(!solActual||!solActual.arriba)){mostrarToast('Es de noche · no hay sol ahora ☽');return;}
+  if(!navigator.geolocation){mostrarToast('Geolocalización no disponible');return;}
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const uLat=pos.coords.latitude,uLng=pos.coords.longitude;
+    map.flyTo([uLat,uLng],15,{duration:1.2});
+    const radio=800;
+    let sel=[];
+    if(modo==='sol'){
+      sel=marcadores.filter(m=>{
+        if(!map.hasLayer(m))return false;
+        if(distM(uLat,uLng,m._lat,m._lng)>radio)return false;
+        const r=resultados[m._t.id_terraza];return r&&!r.se;
+      });
+      if(!sel.length){
+        sel=marcadores.filter(m=>{
+          if(!map.hasLayer(m))return false;
+          if(distM(uLat,uLng,m._lat,m._lng)>radio)return false;
+          const r=resultados[m._t.id_terraza];return r&&r.sp;
+        });
+        mostrarToast(sel.length?`${sel.length} terrazas con toldo cerca ⛱️`:'Sin terrazas soleadas cerca');
+      }else{mostrarToast(`${sel.length} terrazas al sol cerca ☀️`);}
+    }else{
+      sel=marcadores.filter(m=>{
+        if(!map.hasLayer(m))return false;
+        if(distM(uLat,uLng,m._lat,m._lng)>radio)return false;
+        const r=resultados[m._t.id_terraza];return r&&(r.se||r.sp);
+      });
+      mostrarToast(sel.length?`${sel.length} terrazas con sombra cerca 🌿`:'Sin terrazas con sombra cerca');
+    }
+    marcadores.forEach(m=>{
+      const show=sel.includes(m);
+      if(show&&!map.hasLayer(m))m.addTo(map);
+      else if(!show&&map.hasLayer(m))map.removeLayer(m);
+    });
+  },()=>mostrarToast('No se pudo obtener tu ubicación'));
+}
+
 function fmtH(h){return h?h.substring(0,5):'—';}
 
 function popupHTML(t,alturaMax,esEstimado){
@@ -1094,8 +1182,8 @@ fetch('data/terrazas.json')
       const [lat,lng]=utm2ll(x,y);
       if(lat<39.5||lat>41.5||lng<-4.5||lng>-2.5) return;
       const m=L.circleMarker([lat,lng],{
-        radius:7,fillColor:C_DESC.f,color:C_DESC.s,
-        weight:1.5,opacity:0.9,fillOpacity:0.85
+        radius:getMkRadius(),fillColor:C_DESC.f,color:C_DESC.s,
+        weight:0.5,opacity:getMkOpacity(),fillOpacity:getMkOpacity()
       });
       m.bindTooltip(t.rotulo||'Sin nombre',{direction:'top',offset:[0,-6]});
       m.bindPopup('',{maxWidth:310});
@@ -1190,6 +1278,8 @@ function calcular(){
       document.getElementById('stats-box').style.display='block';
       // Actualizar FAB label
       document.getElementById('fab-label').textContent=`${hStr} · ${fecha.slice(8,10)}/${fecha.slice(5,7)}`;
+      aplicarFiltros();
+      if(modoRapido){const m=modoRapido;modoRapido=null;filtrarPorModoRapido(m);}
       closeBS();
     }
   }
@@ -1242,6 +1332,10 @@ function closeBS(){
 document.getElementById('fab-main').addEventListener('click',openBS);
 document.getElementById('bs-close').addEventListener('click',closeBS);
 document.getElementById('bs-backdrop').addEventListener('click',closeBS);
+
+// QUICK ACTIONS
+document.getElementById('btn-sol-ahora').addEventListener('click',()=>{modoRapido='sol';setAhora();calcular();});
+document.getElementById('btn-sombra-ahora').addEventListener('click',()=>{modoRapido='sombra';setAhora();calcular();});
 
 // GEOLOCALIZACIÓN
 document.getElementById('fab-loc').addEventListener('click',()=>{
