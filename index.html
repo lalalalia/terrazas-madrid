@@ -613,6 +613,24 @@ input[type="date"].bs-input:focus { border-color: var(--acento); }
 .pd-v { font-size: 0.8rem; font-weight: 600; }
 .pi-sol { font-size: 0.71rem; color: var(--texto2); font-style: italic; border-top: 1px solid var(--borde); padding-top: 7px; margin-top: 4px; }
 .pi-estimado { font-size: 0.67rem; color: var(--texto2); margin-top: 5px; font-style: italic; }
+.pi-maps { border-top: 1px solid var(--borde); margin-top: 8px; padding-top: 8px; }
+.pi-sv {
+  display: block; width: 100%; height: 120px;
+  object-fit: cover; border-radius: 9px; margin-bottom: 7px;
+  background: var(--borde);
+}
+.pi-sv-map {
+  display: block; width: 100%; height: 140px;
+  border-radius: 9px; border: 0; margin-bottom: 7px;
+}
+.pi-maps-links { display: flex; gap: 7px; }
+.pi-maps-btn {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;
+  padding: 7px 6px; border-radius: 9px; border: 1.5px solid var(--borde);
+  font-size: 0.72rem; font-weight: 600; color: var(--texto); text-decoration: none;
+  transition: background 0.15s;
+}
+.pi-maps-btn:hover { background: var(--borde); }
 
 .leaflet-tooltip {
   background: var(--panel) !important; border: 1.5px solid var(--borde) !important;
@@ -833,6 +851,11 @@ input[type="date"].bs-input:focus { border-color: var(--acento); }
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 
+// Pon aquí tu Google Maps API key para activar la foto de Street View en cada tarjeta.
+// Sin API key los enlaces de Maps y Street View siguen funcionando, solo falta la imagen.
+// Cómo activarla: https://console.cloud.google.com → habilita "Street View Static API"
+const GMAPS_API_KEY = 'AIzaSyBRRrC48HQtSHkWFTxdm1uURkQn4BpW_K8';
+
 // UTM30N → WGS84
 function utm2ll(E,N){
   const a=6378137,f=1/298.257223563,b=a*(1-f),e2=1-(b*b)/(a*a),ep2=e2/(1-e2);
@@ -1022,6 +1045,14 @@ function popupHTML(t,alturaMax,esEstimado){
   const barrio=(t.desc_barrio_local||'').trim();
   const calle=`${(t.clase_vial_edificio||'').trim()} ${(t.desc_vial_edificio||'').trim()}`.trim();
   const num=(t.num_edificio||'').replace(/^0+/,'');
+  const [lat,lng]=utm2ll(t.coordenada_x_local,t.coordenada_y_local);
+  const mapsQuery=encodeURIComponent(`${t.rotulo||''} ${calle}${num?', '+num:''}, Madrid`);
+  const mapsUrl=`https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
+  const svUrl=`https://www.google.com/maps?cbll=${lat},${lng}&layer=c`;
+  const svImgUrl=GMAPS_API_KEY
+    ?`https://maps.googleapis.com/maps/api/streetview?size=290x120&location=${lat},${lng}&fov=90&key=${GMAPS_API_KEY}`
+    :null;
+  const mapEmbedUrl=`https://maps.google.com/maps?q=${lat},${lng}&z=18&output=embed&hl=es`;
   let estadoHTML;
   if(!solActual){
     estadoHTML=`<div class="pi-estado est-pendiente">⚙️ Elige fecha y hora, luego pulsa Calcular</div>`;
@@ -1054,6 +1085,15 @@ function popupHTML(t,alturaMax,esEstimado){
     </div>
     ${solActual?`<div class="pi-sol">☀️ Sol: ${solTxt}</div>`:''}
     ${estimTxt}
+    <div class="pi-maps">
+      ${svImgUrl
+        ?`<img class="pi-sv" src="${svImgUrl}" alt="Street View" onerror="this.style.display='none'">`
+        :`<iframe class="pi-sv-map" src="${mapEmbedUrl}" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>`}
+      <div class="pi-maps-links">
+        <a class="pi-maps-btn" href="${mapsUrl}" target="_blank" rel="noopener">📍 Google Maps</a>
+        <a class="pi-maps-btn" href="${svUrl}" target="_blank" rel="noopener">🏘 Street View</a>
+      </div>
+    </div>
   </div>`;
 }
 
