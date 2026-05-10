@@ -14,6 +14,8 @@ Web interactiva que muestra las 6.517 terrazas de Madrid sobre un mapa, con cál
 - Cálculo solar real según fecha, hora y latitud de Madrid, con corrección de timezone (UTC+1/+2 España)
 - Estimación masiva de sombra (heurística rápida) para todo el mapa al pulsar "Calcular"
 - **Cálculo exacto por ray casting con edificios OSM** al hacer clic en cada terraza
+- Radio de consulta OSM dinámico según altitud solar (80–250 m) para no perder sombras lejanas
+- Timeout de 12 s por endpoint Overpass con `AbortController` — sin cuelgues indefinidos
 - 4 tipos de sombra con colores distintos: edificio, toldo/sombrilla, edificio+toldo, sin sombra
 - Buscador de locales por nombre o calle (dropdown con resultados)
 - Popup con: nombre, calle, barrio, mesas, sillas, horario L-J y V-D, altura del edificio (OSM), posición solar
@@ -28,9 +30,11 @@ Web interactiva que muestra las 6.517 terrazas de Madrid sobre un mapa, con cál
 
 ```
 terrazas-madrid/
-├── index.html          ← fichero único con toda la lógica
+├── index.html           ← fichero único con toda la lógica
+├── resumen.md           ← este documento
+├── lógica-sombras.md    ← explicación detallada del sistema de sombras (dos fases)
 └── data/
-    └── terrazas.json   ← censo de terrazas del Ayuntamiento de Madrid
+    └── terrazas.json    ← censo de terrazas del Ayuntamiento de Madrid
 ```
 
 ---
@@ -55,15 +59,19 @@ terrazas-madrid/
 - **HTML + JS vanilla** — sin frameworks, sin build tools
 - **Leaflet.js 1.9.4** — mapa interactivo (CDN)
 - **CartoDB Light** — tiles del mapa
-- **Overpass API** → edificios OSM en radio de 80m por terraza (`[building]`, `out geom`)
+- **Overpass API** → edificios OSM en radio dinámico por terraza (`[building]`, `out geom`)
+  - Radio: `max(80, min(250, ⌈30 / tan(altitud_solar)⌉))` metros
   - Endpoint principal: `overpass-api.de`
   - Fallback: `overpass.karte.mi.it`
+  - Timeout JS: 12 s por endpoint con `AbortController`
 - **Google Fonts** — Syne (títulos) + DM Sans (texto)
 - **Live Server** (extensión VS Code) — necesario para cargar el JSON local
 
 ---
 
 ## Lógica de sombras
+
+El sistema funciona en dos fases distintas. Ver detalle completo en `lógica-sombras.md`.
 
 ### Cálculo solar
 
@@ -77,44 +85,63 @@ function offsetUTC(fecha)
 // En calcular(): posicionSol(..., hora - offsetUTC(fecha))
 ```
 
-El algoritmo de posición solar usa declinación, ecuación del tiempo y ángulo horario con fórmulas esféricas.
+El algoritmo usa declinación solar, ecuación del tiempo y ángulo horario con fórmulas esféricas.
 
-### Sombra de edificio — estimación masiva al pulsar Calcular
+### Fase 1 — Estimación masiva al pulsar "Calcular" (sin OSM)
 
-No consulta edificios reales. Es una heurística rápida para pintar el mapa inicial:
+No consulta edificios reales. Heurística rápida para pintar el mapa inicial:
 
 ```javascript
 const prob = Math.max(0.05, Math.min(0.90, (55 - sol.alt) / 55));
 const hash = ((t.id_terraza * 2654435761) >>> 0) / 4294967295;
-const se = hash < prob; // resultado determinista pero aproximado
+const se = hash < prob; // determinista pero aproximado
 ```
 
-Esto marca el resultado como `estimado: true`. Al hacer clic en la terraza, se lanza el cálculo exacto.
+Los colores son plausibles pero inventados. El resultado se guarda como `estimado: true`.
 
-### Sombra de edificio — cálculo exacto por ray casting (OSM)
+### Fase 2 — Cálculo exacto por ray casting al hacer clic (con OSM)
 
-Al hacer clic en una terraza:
+Al hacer clic en una terraza con `estimado: true`:
 
-1. **Consulta Overpass** por todos los edificios en radio 80m alrededor de la terraza:
+1. **Calcula radio de consulta** según altitud solar:
    ```
-   way(around:80,lat,lng)[building]; out geom;
+   radio = max(80, min(250, ⌈30 / tan(alt_solar)⌉)) metros
    ```
-2. **Altura del edificio** según prioridad:
+   A altitudes bajas (ej. 10°) una sombra de 30 m alcanza ~170 m — el radio fijo de 80 m se quedaría corto.
+
+2. **Consulta Overpass** (con timeout de 12 s y fallback):
+   ```
+   way(around:<radio>,lat,lng)[building]; out geom;
+   ```
+
+3. **Altura del edificio** según prioridad:
    - Tag `height` en OSM (metros exactos)
    - Tag `building:levels` × 3.2 m
    - Fallback: 10 m
-3. **Excluye el propio edificio** de la terraza mediante test punto-en-polígono (`_pip`)
-4. **Ray casting**: lanza un rayo desde la terraza en la dirección del sol (azimut)
+
+4. **Excluye el propio edificio** de la terraza con test punto-en-polígono (`_pip`)
+
+5. **Ray casting**: lanza un rayo desde la terraza en dirección al sol:
    ```javascript
-   // Dirección hacia el sol en coordenadas locales (metros)
    dx = sin(azimut), dy = cos(azimut)
    ```
-5. **Para cada edificio** que intersecta el rayo a distancia `t` metros:
+
+6. **Por cada edificio** que intersecta el rayo a distancia `t` metros:
    ```javascript
-   // El edificio bloquea el sol si su sombra llega a la terraza:
    sombra = altura_edificio > t * tan(altitud_solar)
    ```
-6. Cachea resultados por coordenada en `_osmCache` para no repetir consultas.
+   `alturaMax` registra la altura del edificio más alto que el rayo cruza (aunque no tape el sol).
+
+7. **Cachea** resultados por `(lat, lng, radio)` en `_osmCache`.
+
+8. Guarda el resultado como `estimado: false` — no vuelve a consultar Overpass para esa terraza.
+
+### El popup se renderiza dos veces
+
+- **Render 1** (inmediato): muestra la estimación estadística, campo "Edificio" = `"Consultando…"`
+- **Render 2** (cuando Overpass responde): actualiza a resultado exacto, campo "Edificio" = `"X m (OSM)"` o `"—"` si no hay edificio en el rayo
+
+Si Overpass no responde antes del timeout, el `catch` marca `estimado: false` de todas formas y actualiza el popup con lo que haya, evitando que quede congelado.
 
 ### Sombra propia
 
@@ -124,6 +151,17 @@ function sombraPropia(t) {
          (t.sombrillas_ra > 0) || (t.toldos_pavimento_ra > 0) ||
          t.construccion_ligera_fachada_es === true ||
          t.construccion_ligera_bordillo_es === true;
+}
+```
+
+### Campos clave del objeto resultado
+
+```javascript
+resultados[id_terraza] = {
+  se,          // boolean — sombra de edificio
+  sp,          // boolean — sombra propia (toldo/sombrilla)
+  alturaMax,   // número (metros) o null si ningún edificio cruza el rayo
+  estimado     // true = heurística, false = OSM ya respondió
 }
 ```
 
@@ -147,7 +185,10 @@ function sombraPropia(t) {
 | Sombra incorrecta (todo verde a las 19h verano) | `posicionSol` recibía hora local española pero la trataba como UTC → sol calculado 2h después de su posición real | Restar `offsetUTC(fecha)` (1 o 2 según época) antes de llamar a `posicionSol` |
 | 504 Gateway Timeout en consultas OSM | Servidor público `overpass-api.de` sobrecargado | Añadido fallback a `overpass.karte.mi.it` |
 | Falso positivo: propio edificio contaba como bloqueador | El polígono del edificio de la terraza intersectaba el rayo | Test punto-en-polígono para excluir el edificio que contiene la terraza |
-| Fórmula de sombra ignoraba dirección del sol | La fórmula original solo usaba altitud, no azimut; consultaba el propio edificio de la terraza en vez de los vecinos | Reemplazada por ray casting con footprints reales de OSM |
+| Fórmula de sombra ignoraba dirección del sol | Consultaba el propio edificio en vez de los vecinos; no usaba azimut | Reemplazada por ray casting con footprints reales de OSM |
+| "Edificio: Consultando…" permanente en terrazas al sol | `alturaMax:null` usaba el mismo string para "cargando" y "sin edificios" | Si `estimado:false` y `alturaMax:null`, mostrar `'—'` en lugar de `'Consultando…'` |
+| Sombras lejanas no detectadas a ángulos solares bajos | Radio fijo de 80 m insuficiente cuando el sol está bajo (sombra de 30 m llega a ~170 m a 10°) | Radio dinámico `max(80, min(250, ⌈30/tan(alt)⌉))` m según altitud solar |
+| Popup congelado si Overpass no respondía | Sin timeout JS en el fetch; el `await` podía colgar indefinidamente | `AbortController` de 12 s + `try/catch` en el click handler |
 
 ---
 
@@ -165,7 +206,7 @@ function sombraPropia(t) {
 ## Próximos pasos sugeridos
 
 1. **Resolver el problema de GitHub Desktop** para publicar en GitHub Pages
-2. **Mejorar el cálculo en batch**: actualmente la estimación masiva es una heurística aleatoria. Se podría hacer un pre-fetch de edificios por zonas visibles del mapa para calcular con OSM sin esperar al clic.
+2. **Mejorar el cálculo en batch**: la estimación masiva es una heurística. Se podría pre-fetchar edificios por zonas visibles del mapa para calcular con OSM sin esperar al clic
 3. **Versión standalone** (opcional): meter el JSON dentro del HTML para que funcione sin Live Server
 4. **Mejoras posibles:**
    - Filtro por horario (ej. "abiertas ahora")

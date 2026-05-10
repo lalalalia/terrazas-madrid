@@ -873,14 +873,21 @@ function offsetUTC(fecha){
 }
 
 const _osmCache={};
-async function edificiosOSM(lat,lng){
-  const key=`${lat.toFixed(4)},${lng.toFixed(4)}`;
+async function edificiosOSM(lat,lng,altSol=20){
+  const D=Math.PI/180;
+  const radio=altSol>0.5?Math.max(80,Math.min(250,Math.ceil(30/Math.tan(altSol*D)))):250;
+  const key=`${lat.toFixed(4)},${lng.toFixed(4)},${radio}`;
   if(_osmCache[key]) return _osmCache[key];
-  const q=`[out:json][timeout:15];way(around:80,${lat},${lng})[building];out geom;`;
+  const q=`[out:json][timeout:20];way(around:${radio},${lat},${lng})[building];out geom;`;
   const endpoints=['https://overpass-api.de/api/interpreter','https://overpass.karte.mi.it/api/interpreter'];
   try{
     let r=null;
-    for(const ep of endpoints){r=await fetch(`${ep}?data=${encodeURIComponent(q)}`);if(r.ok)break;}
+    for(const ep of endpoints){
+      const ctrl=new AbortController();
+      const tid=setTimeout(()=>ctrl.abort(),12000);
+      try{r=await fetch(`${ep}?data=${encodeURIComponent(q)}`,{signal:ctrl.signal});}finally{clearTimeout(tid);}
+      if(r?.ok) break;
+    }
     if(!r||!r.ok) return [];
     const data=await r.json();
     const edifs=(data.elements||[]).filter(el=>el.geometry?.length>2).map(el=>{
@@ -914,7 +921,7 @@ function _raySegT(dx,dy,ax,ay,bx,by){
 }
 async function sombraOSM(lat,lng,altSol,azSol){
   if(altSol<=0) return {sombra:true,alturaMax:null};
-  const edifs=await edificiosOSM(lat,lng);
+  const edifs=await edificiosOSM(lat,lng,altSol);
   if(!edifs.length) return {sombra:false,alturaMax:null};
   const altR=altSol*Math.PI/180,azR=azSol*Math.PI/180;
   const dx=Math.sin(azR),dy=Math.cos(azR);
@@ -1029,7 +1036,8 @@ function popupHTML(t,alturaMax,esEstimado){
     else if(sP) estadoHTML=`<div class="pi-estado est-prop">⛱️ Sombra propia (toldo/sombrilla)</div>`;
     else        estadoHTML=`<div class="pi-estado est-sol">☀️ Al sol pleno a esta hora</div>`;
   }
-  const pTxt=alturaMax?`${alturaMax.toFixed(0)}m (OSM)`:(res?.alturaMax?`${res.alturaMax.toFixed(0)}m (OSM)`:'Consultando…');
+  const _aMax=alturaMax??res?.alturaMax;
+  const pTxt=_aMax?`${_aMax.toFixed(0)}m (OSM)`:(res&&!res.estimado?'—':'Consultando…');
   const solTxt=solActual?`Alt. ${solActual.alt.toFixed(1)}°, Az. ${solActual.az.toFixed(0)}°`:'—';
   const estimTxt=esEstimado?`<div class="pi-estimado">* Estimación. Toca para datos exactos.</div>`:'';
   return `<div class="pi">
@@ -1192,12 +1200,17 @@ fetch('data/terrazas.json')
         popup.setContent(popupHTML(t,null,resultados[t.id_terraza]?.estimado));
         map.openPopup(popup,m.getLatLng());
         if(solActual&&solActual.arriba&&(!resultados[t.id_terraza]||resultados[t.id_terraza].estimado)){
-          const {sombra:se,alturaMax}=await sombraOSM(m._lat,m._lng,solActual.alt,solActual.az);
-          const sp=sombraPropia(t);
-          resultados[t.id_terraza]={se,sp,alturaMax,estimado:false};
-          const c=colorMarcador(se,sp);
-          m.setStyle({fillColor:c.f,color:c.s});
-          if(m.isPopupOpen()) popup.setContent(popupHTML(t,alturaMax,false));
+          try{
+            const {sombra:se,alturaMax}=await sombraOSM(m._lat,m._lng,solActual.alt,solActual.az);
+            const sp=sombraPropia(t);
+            resultados[t.id_terraza]={se,sp,alturaMax,estimado:false};
+            const c=colorMarcador(se,sp);
+            m.setStyle({fillColor:c.f,color:c.s});
+            if(m.isPopupOpen()) popup.setContent(popupHTML(t,alturaMax,false));
+          }catch{
+            resultados[t.id_terraza]={...(resultados[t.id_terraza]||{}),estimado:false};
+            if(m.isPopupOpen()) popup.setContent(popupHTML(t,null,false));
+          }
         }
       });
       m._t=t; m._lat=lat; m._lng=lng;
