@@ -364,16 +364,6 @@ input[type="range"]::-webkit-slider-thumb {
 }
 @media (max-width: 640px) { #hora-pill { display: block; } }
 
-/* ── STATS BOX ── */
-#stats-box {
-  position: absolute; bottom: 20px; right: 52px;
-  background: var(--panel); border: 1.5px solid var(--borde);
-  border-radius: 12px; padding: 10px 14px; z-index: 500;
-  font-size: 0.73rem; color: var(--texto2); line-height: 2.1;
-  display: none;
-}
-#stats-box strong { color: var(--texto); font-weight: 700; }
-@media (max-width: 640px) { #stats-box { right: 12px; bottom: 190px; } }
 
 /* ── FAB MOBILE ── */
 .fab-loc {
@@ -729,13 +719,6 @@ input[type="date"].bs-input:focus { border-color: var(--acento); }
 <div id="map"></div>
 <div id="hora-pill">😎 — : —</div>
 
-<!-- STATS -->
-<div id="stats-box">
-  <span id="st-label">—</span><br>
-  🟢 Sombra edificio: <strong id="st-edif">—</strong><br>
-  🟡 Solo toldo: <strong id="st-prop">—</strong><br>
-  🔴 Al sol: <strong id="st-sol">—</strong>
-</div>
 
 <!-- FAB MOBILE -->
 <button class="fab-loc" id="fab-loc" title="Mi ubicación">📍</button>
@@ -1324,11 +1307,6 @@ function calcular(){
       btn1.textContent='☀️ Recalcular';
       btn2.textContent='☀️ Recalcular sombras';
       pb.style.display='none';pt.textContent='';
-      document.getElementById('st-label').textContent=`${fecha} · ${hStr}h`;
-      document.getElementById('st-edif').textContent=cE.toLocaleString('es-ES');
-      document.getElementById('st-prop').textContent=cP.toLocaleString('es-ES');
-      document.getElementById('st-sol').textContent=cS.toLocaleString('es-ES');
-      document.getElementById('stats-box').style.display='block';
       // Actualizar FAB label
       document.getElementById('fab-label').textContent=`${hStr} · ${fecha.slice(8,10)}/${fecha.slice(5,7)}`;
       document.querySelector('.fab-center-wrap').classList.add('settled');
