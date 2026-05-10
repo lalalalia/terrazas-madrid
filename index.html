@@ -394,12 +394,17 @@ input[type="range"]::-webkit-slider-thumb {
 .fab-center-wrap {
   display: none;
   position: fixed;
-  bottom: calc(24px + env(safe-area-inset-bottom,0px));
-  left: 50%; transform: translateX(-50%);
+  top: 45%;
+  left: 50%; transform: translate(-50%, -50%);
   z-index: 1400;
   flex-direction: column; align-items: center; gap: 8px;
+  transition: top 0.44s cubic-bezier(0.32,0.72,0,1), transform 0.44s cubic-bezier(0.32,0.72,0,1);
 }
 @media (max-width: 640px) { .fab-center-wrap { display: flex; } }
+.fab-center-wrap.settled {
+  top: calc(100dvh - 24px - env(safe-area-inset-bottom,0px));
+  transform: translate(-50%, -100%);
+}
 
 .fab-cta {
   height: 52px; border-radius: 26px;
@@ -426,7 +431,7 @@ input[type="range"]::-webkit-slider-thumb {
 .fab-sombra { background: var(--verde); color: #fff; }
 
 #toast {
-  position: fixed; bottom: 160px; left: 50%;
+  position: fixed; top: 68px; left: 50%;
   transform: translateX(-50%);
   background: rgba(26,18,8,0.88); color: #fff;
   padding: 10px 22px; border-radius: 100px;
@@ -972,40 +977,35 @@ function setAhora(){
 
 function filtrarPorModoRapido(modo){
   if(modo==='sol'&&(!solActual||!solActual.arriba)){mostrarToast('Es de noche · no hay sol ahora ☽');return;}
-  if(!navigator.geolocation){mostrarToast('Geolocalización no disponible');return;}
-  navigator.geolocation.getCurrentPosition(pos=>{
-    const uLat=pos.coords.latitude,uLng=pos.coords.longitude;
-    map.flyTo([uLat,uLng],15,{duration:1.2});
-    const radio=800;
-    let sel=[];
-    if(modo==='sol'){
-      sel=marcadores.filter(m=>{
-        if(!map.hasLayer(m))return false;
-        if(distM(uLat,uLng,m._lat,m._lng)>radio)return false;
-        const r=resultados[m._t.id_terraza];return r&&!r.se;
-      });
-      if(!sel.length){
-        sel=marcadores.filter(m=>{
-          if(!map.hasLayer(m))return false;
-          if(distM(uLat,uLng,m._lat,m._lng)>radio)return false;
-          const r=resultados[m._t.id_terraza];return r&&r.sp;
-        });
-        mostrarToast(sel.length?`${sel.length} terrazas con toldo cerca ⛱️`:'Sin terrazas soleadas cerca');
-      }else{mostrarToast(`${sel.length} terrazas al sol cerca ☀️`);}
-    }else{
-      sel=marcadores.filter(m=>{
-        if(!map.hasLayer(m))return false;
-        if(distM(uLat,uLng,m._lat,m._lng)>radio)return false;
-        const r=resultados[m._t.id_terraza];return r&&(r.se||r.sp);
-      });
-      mostrarToast(sel.length?`${sel.length} terrazas con sombra cerca 🌿`:'Sin terrazas con sombra cerca');
-    }
-    marcadores.forEach(m=>{
-      const show=sel.includes(m);
-      if(show&&!map.hasLayer(m))m.addTo(map);
-      else if(!show&&map.hasLayer(m))map.removeLayer(m);
+  const bounds=map.getBounds();
+  let sel=[];
+  if(modo==='sol'){
+    sel=marcadores.filter(m=>{
+      if(!map.hasLayer(m))return false;
+      if(!bounds.contains([m._lat,m._lng]))return false;
+      const r=resultados[m._t.id_terraza];return r&&!r.se;
     });
-  },()=>mostrarToast('No se pudo obtener tu ubicación'));
+    if(!sel.length){
+      sel=marcadores.filter(m=>{
+        if(!map.hasLayer(m))return false;
+        if(!bounds.contains([m._lat,m._lng]))return false;
+        const r=resultados[m._t.id_terraza];return r&&r.sp;
+      });
+      mostrarToast(sel.length?`${sel.length} terrazas con toldo ⛱️`:'Sin terrazas soleadas en esta zona');
+    }else{mostrarToast(`${sel.length} terrazas al sol ☀️`);}
+  }else{
+    sel=marcadores.filter(m=>{
+      if(!map.hasLayer(m))return false;
+      if(!bounds.contains([m._lat,m._lng]))return false;
+      const r=resultados[m._t.id_terraza];return r&&(r.se||r.sp);
+    });
+    mostrarToast(sel.length?`${sel.length} terrazas con sombra 🌿`:'Sin terrazas con sombra en esta zona');
+  }
+  marcadores.forEach(m=>{
+    const show=sel.includes(m);
+    if(show&&!map.hasLayer(m))m.addTo(map);
+    else if(!show&&map.hasLayer(m))map.removeLayer(m);
+  });
 }
 
 function fmtH(h){return h?h.substring(0,5):'—';}
@@ -1278,6 +1278,7 @@ function calcular(){
       document.getElementById('stats-box').style.display='block';
       // Actualizar FAB label
       document.getElementById('fab-label').textContent=`${hStr} · ${fecha.slice(8,10)}/${fecha.slice(5,7)}`;
+      document.querySelector('.fab-center-wrap').classList.add('settled');
       aplicarFiltros();
       if(modoRapido){const m=modoRapido;modoRapido=null;filtrarPorModoRapido(m);}
       closeBS();
@@ -1334,8 +1335,14 @@ document.getElementById('bs-close').addEventListener('click',closeBS);
 document.getElementById('bs-backdrop').addEventListener('click',closeBS);
 
 // QUICK ACTIONS
-document.getElementById('btn-sol-ahora').addEventListener('click',()=>{modoRapido='sol';setAhora();calcular();});
-document.getElementById('btn-sombra-ahora').addEventListener('click',()=>{modoRapido='sombra';setAhora();calcular();});
+document.getElementById('btn-sol-ahora').addEventListener('click',()=>{
+  document.querySelector('.fab-center-wrap').classList.add('settled');
+  modoRapido='sol';setAhora();calcular();
+});
+document.getElementById('btn-sombra-ahora').addEventListener('click',()=>{
+  document.querySelector('.fab-center-wrap').classList.add('settled');
+  modoRapido='sombra';setAhora();calcular();
+});
 
 // GEOLOCALIZACIÓN
 document.getElementById('fab-loc').addEventListener('click',()=>{
