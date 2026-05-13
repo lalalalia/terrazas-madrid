@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Terrazas con Sombra · Madrid</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>😎</text></svg>">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -157,6 +157,7 @@ header {
   height: 56px;
   display: flex; align-items: center; justify-content: space-between;
   flex-shrink: 0; z-index: 1000; gap: 12px;
+  position: relative;
 }
 
 .logo {
@@ -183,9 +184,32 @@ header {
   font-size: 0.72rem; color: var(--texto2); white-space: nowrap;
 }
 .ley-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+/* Info popover */
+.btn-info {
+  background: none; border: 1.5px solid var(--borde);
+  border-radius: 100px; padding: 4px 11px;
+  font-size: 0.72rem; color: var(--texto2);
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn-info:hover { border-color: var(--acento); color: var(--texto); }
+.info-popover {
+  position: absolute; top: calc(100% + 8px); right: 16px;
+  background: var(--panel); border: 1.5px solid var(--borde2);
+  border-radius: 14px; padding: 16px 18px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.13);
+  z-index: 3000; width: 300px;
+  font-size: 0.8rem; color: var(--texto2); line-height: 1.6;
+  display: none;
+}
+.info-popover.open { display: block; }
+.info-popover strong { color: var(--texto); font-weight: 600; }
+
 @media (max-width: 640px) {
   .leyenda-header { display: none; }
   .logo-txt { display: none; }
+  .btn-info { display: none; }
   .search-wrap { max-width: none; }
   header { padding: 0 12px; height: 60px; }
   .search-input { font-size: 1rem; padding: 10px 40px 10px 42px; }
@@ -666,6 +690,60 @@ input[type="date"].bs-input:focus { border-color: var(--acento); }
   font-size: 0.75rem !important; border-radius: 7px !important;
   box-shadow: 0 3px 10px rgba(0,0,0,0.1) !important; padding: 4px 9px !important;
 }
+
+/* ── BLOQUE ¿CÓMO FUNCIONA? (onboarding) ── */
+.ob-info {
+  font-size: 0.78rem; color: var(--texto2);
+  background: var(--panel2); border-radius: 10px;
+  padding: 10px 14px; margin-bottom: 20px; line-height: 1.6;
+}
+.ob-info strong { color: var(--texto); font-weight: 600; }
+
+/* ── BLOQUE ¿CÓMO FUNCIONA? (bottom sheet) ── */
+.bs-como {
+  margin-top: 12px;
+  background: var(--panel2); border-radius: 10px;
+  padding: 10px 14px; font-size: 0.78rem;
+  color: var(--texto2); line-height: 1.6;
+}
+.bs-como strong { color: var(--texto); font-weight: 600; }
+
+/* ── ERROR STATE (carga) ── */
+#loading.error { gap: 12px; }
+.ld-error-icon { font-size: 2.5rem; }
+.ld-error-titulo {
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: 1.2rem; color: var(--texto);
+}
+.ld-error-msg {
+  font-size: 0.84rem; color: var(--texto2);
+  line-height: 1.5; text-align: center; padding: 0 16px;
+}
+.btn-retry {
+  background: var(--acento); color: #fffaf5; border: none;
+  border-radius: 12px; padding: 12px 28px;
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.9rem;
+  cursor: pointer; transition: opacity 0.15s;
+}
+.btn-retry:hover { opacity: 0.88; }
+
+/* Error en popup */
+.est-error { background: #FFF0EC; color: #a82d0f; }
+
+/* ── FOOTER ── */
+.app-footer {
+  background: var(--panel);
+  border-top: 1px solid var(--borde);
+  padding: 0 20px; height: 28px;
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.67rem; color: var(--texto2);
+  flex-shrink: 0; z-index: 100; overflow: hidden;
+}
+.app-footer a { color: var(--texto2); text-decoration: underline; }
+.app-footer a:hover { color: var(--texto); }
+.footer-sep { opacity: 0.35; margin: 0 2px; }
+.footer-spacer { flex: 1; }
+@media (max-width: 640px) { .app-footer { display: none; } }
 </style>
 </head>
 <body>
@@ -698,6 +776,10 @@ input[type="date"].bs-input:focus { border-color: var(--acento); }
         <div class="ob-paso-txt"><strong>Toca una terraza</strong> — para ver más datos (horario, número de mesas…)</div>
       </div>
     </div>
+    <div class="ob-info">
+      <p>Usamos la <b>base pública de datos de terrazas del Ayuntamiento de Madrid</b>. No es perfecta: verás rótulos que no coinciden y datos erróneos sobre mesas, sombrillas u horarios. Usa el enlace a Google Maps para corroborarlos.</p>
+      <p style="margin-top:8px">Calculamos la <b>sombra de los edificios</b> en tiempo real combinando la posición solar con sus alturas, procedentes de OpenStreetMap (Overpass API).</p>
+    </div>
     <button class="btn-ob" id="btn-ob-ok">¡Empezar! 🌞</button>
   </div>
 </div>
@@ -719,6 +801,11 @@ input[type="date"].bs-input:focus { border-color: var(--acento); }
     <div class="ley-item"><div class="ley-dot" style="background:var(--c-toldo)"></div>Solo toldo</div>
     <div class="ley-item"><div class="ley-dot" style="background:var(--c-sol)"></div>Al sol</div>
     <div class="ley-item"><div class="ley-dot" style="background:var(--c-desc)"></div>Sin calcular</div>
+  </div>
+  <button class="btn-info" id="btn-info">ℹ️ ¿Cómo funciona?</button>
+  <div class="info-popover" id="info-popover">
+    <p>Usamos la <b>base pública de datos de terrazas del Ayuntamiento de Madrid</b>. No es perfecta: verás rótulos que no coinciden y datos erróneos sobre mesas, sombrillas u horarios. Usa el enlace a Google Maps para corroborarlos.</p>
+    <p style="margin-top:10px">Calculamos la <b>sombra de los edificios</b> en tiempo real combinando la posición solar astronómica con sus alturas, procedentes de OpenStreetMap (Overpass API).</p>
   </div>
 </header>
 
@@ -758,6 +845,18 @@ input[type="date"].bs-input:focus { border-color: var(--acento); }
 
 <!-- MAPA -->
 <div id="map"></div>
+
+<!-- FOOTER (solo desktop) -->
+<footer class="app-footer">
+  <span>Datos: <a href="https://datos.madrid.es" target="_blank" rel="noopener">Ayuntamiento de Madrid</a></span>
+  <span class="footer-sep">·</span>
+  <span>Edificios: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></span>
+  <span class="footer-sep">·</span>
+  <span>Actualizado: 2026</span>
+  <span class="footer-spacer"></span>
+  <a href="https://x.com/lalalalia" target="_blank" rel="noopener">Made with 🔥 by @lalalalia</a>
+</footer>
+
 <div id="hora-pill">😎 — : —</div>
 
 
@@ -861,6 +960,11 @@ input[type="date"].bs-input:focus { border-color: var(--acento); }
             <div class="bs-ley-row"><div class="bs-ley-dot" style="background:var(--c-toldo)"></div><span class="bs-ley-txt">Tiene toldo, pero al sol</span></div>
             <div class="bs-ley-row"><div class="bs-ley-dot" style="background:var(--c-sol)"></div><span class="bs-ley-txt">Al sol pleno</span></div>
             <div class="bs-ley-row"><div class="bs-ley-dot" style="background:var(--c-desc)"></div><span class="bs-ley-txt">Sin calcular aún</span></div>
+          </div>
+          <div class="bs-como">
+            <p><b>¿Cómo funciona?</b></p>
+            <p style="margin-top:8px">Usamos la <b>base pública de datos de terrazas del Ayuntamiento de Madrid</b>. No es perfecta: verás rótulos que no coinciden y datos erróneos sobre mesas, sombrillas u horarios. Usa el enlace a Google Maps para corroborarlos.</p>
+            <p style="margin-top:8px">Calculamos la <b>sombra de los edificios</b> en tiempo real combinando la posición solar astronómica con sus alturas, procedentes de OpenStreetMap (Overpass API).</p>
           </div>
         </div>
       </div>
@@ -1084,6 +1188,8 @@ function popupHTML(t,alturaMax,esEstimado){
     estadoHTML=`<div class="pi-estado est-noche">🌙 Es de noche a esa hora</div>`;
   }else if(!res){
     estadoHTML=`<div class="pi-estado est-cargando">⏳ Consultando edificios…</div>`;
+  }else if(res.error){
+    estadoHTML=`<div class="pi-estado est-error">⚠️ Error al consultar edificios cercanos</div>`;
   }else{
     const sE=res.se,sP=res.sp;
     if(sE&&sP) estadoHTML=`<div class="pi-estado est-edif-prop">🌿 Sombra de edificio + toldo</div>`;
@@ -1272,7 +1378,7 @@ fetch('data/terrazas.json')
             m.setStyle({fillColor:c.f,color:c.s});
             if(m.isPopupOpen()) popup.setContent(popupHTML(t,alturaMax,false));
           }catch{
-            resultados[t.id_terraza]={...(resultados[t.id_terraza]||{}),estimado:false};
+            resultados[t.id_terraza]={...(resultados[t.id_terraza]||{}),error:true,estimado:false};
             if(m.isPopupOpen()) popup.setContent(popupHTML(t,null,false));
           }
         }
@@ -1289,7 +1395,14 @@ fetch('data/terrazas.json')
     }
   })
   .catch(()=>{
-    document.querySelector('.ld-sub').textContent='❌ No se encontró data/terrazas.json';
+    const ld=document.getElementById('loading');
+    ld.classList.add('error');
+    ld.innerHTML=`
+      <div class="ld-error-icon">😕</div>
+      <div class="ld-error-titulo">No se pudieron cargar los datos</div>
+      <div class="ld-error-msg">Comprueba tu conexión a internet<br>e inténtalo de nuevo.</div>
+      <button class="btn-retry" onclick="location.reload()">Reintentar</button>
+    `;
   });
 
 // ONBOARDING
@@ -1420,6 +1533,12 @@ document.getElementById('btn-sombra-ahora').addEventListener('click',()=>{
 document.getElementById('btn-sol-desk').addEventListener('click',()=>{modoRapido='sol';setAhora();calcular();});
 document.getElementById('btn-sombra-desk').addEventListener('click',()=>{modoRapido='sombra';setAhora();calcular();});
 
+// INFO POPOVER
+const infoBtn=document.getElementById('btn-info');
+const infoPopover=document.getElementById('info-popover');
+infoBtn.addEventListener('click',e=>{e.stopPropagation();infoPopover.classList.toggle('open');});
+document.addEventListener('click',()=>infoPopover.classList.remove('open'));
+
 // GEOLOCALIZACIÓN
 let locMarker=null, locCircle=null, locWatchId=null;
 
@@ -1459,7 +1578,10 @@ document.getElementById('fab-loc').addEventListener('click',()=>{
         );
       }
     },
-    ()=>mostrarToast('No se pudo obtener tu ubicación')
+    err=>{
+      const msgs={1:'Permiso de ubicación denegado',2:'Ubicación no disponible',3:'Tiempo de espera agotado'};
+      mostrarToast(msgs[err.code]||'No se pudo obtener tu ubicación');
+    }
   );
 });
 
