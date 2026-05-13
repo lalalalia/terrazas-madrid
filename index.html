@@ -758,6 +758,16 @@ input[type="date"].bs-input:focus { border-color: var(--acento); }
   white-space: nowrap;
 }
 @media (max-width: 640px) { .btn-como-mobile { display: block; } }
+.como-popover-mobile {
+  display: none; position: fixed;
+  bottom: 58px; left: 12px; right: 12px; z-index: 3000;
+  background: var(--panel); border: 1.5px solid var(--borde2);
+  border-radius: 16px; padding: 16px 18px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  font-size: 0.82rem; color: var(--texto2); line-height: 1.6;
+}
+.como-popover-mobile.open { display: block; }
+.como-popover-mobile strong { color: var(--texto); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -862,6 +872,10 @@ input[type="date"].bs-input:focus { border-color: var(--acento); }
 
 <!-- BOTÓN ¿CÓMO FUNCIONA? MOBILE -->
 <button class="btn-como-mobile" id="btn-como-mobile">ℹ️ ¿Cómo funciona?</button>
+<div class="como-popover-mobile" id="como-popover-mobile">
+  <p>Usamos la <strong>base pública de datos de terrazas del Ayuntamiento de Madrid</strong>. No es perfecta: verás rótulos que no coinciden y datos erróneos sobre mesas, sombrillas u horarios. Usa el enlace a Google Maps para corroborarlos.</p>
+  <p style="margin-top:10px">Calculamos la <strong>sombra de los edificios</strong> en tiempo real combinando la posición solar astronómica con sus alturas, procedentes de OpenStreetMap (Overpass API).</p>
+</div>
 
 <!-- FOOTER (solo desktop) -->
 <footer class="app-footer">
@@ -1537,13 +1551,10 @@ document.getElementById('bs-close').addEventListener('click',closeBS);
 document.getElementById('bs-backdrop').addEventListener('click',closeBS);
 
 // BOTÓN ¿CÓMO FUNCIONA? MOBILE
-document.getElementById('btn-como-mobile').addEventListener('click',()=>{
-  openBS();
-  setTimeout(()=>{
-    const el=document.querySelector('.bs-como');
-    if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
-  },300);
-});
+const comoBtn=document.getElementById('btn-como-mobile');
+const comoPopover=document.getElementById('como-popover-mobile');
+comoBtn.addEventListener('click',e=>{e.stopPropagation();comoPopover.classList.toggle('open');});
+document.addEventListener('click',()=>comoPopover.classList.remove('open'));
 
 // QUICK ACTIONS
 document.getElementById('btn-sol-ahora').addEventListener('click',()=>{
