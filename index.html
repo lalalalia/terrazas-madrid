@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Terrazas con Sombra · Madrid</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>😎</text></svg>">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet">
 <style>
@@ -11,23 +12,23 @@
 
 :root {
   --fondo:   #FFFDF7;
-  --panel:   #FFFFFF;
+  --panel:   #fffaf5;
   --panel2:  #FFF8E8;
   --borde:   #EDE0C4;
   --borde2:  #E0C88A;
   --texto:   #1A1208;
   --texto2:  #7A6248;
-  --acento:  #FF5C1A;
+  --acento:  #f24e1e;
   --acento2: #FFB800;
-  --verde:   #00A86B;
-  --verde2:  #007A4D;
+  --verde:   #008f5a;
+  --verde2:  #006b44;
   --azul:    #1A7ABF;
-  --rojo:    #D93B1A;
+  --rojo:    #c73612;
   --gris:    #B0A090;
 
-  --c-sombra:    #00A86B;
+  --c-sombra:    #008f5a;
   --c-toldo:     #E8A820;
-  --c-sol:       #D93B1A;
+  --c-sol:       #c73612;
   --c-desc:      #C0B0A0;
 }
 
@@ -101,7 +102,7 @@ body {
 .ob-num {
   width: 28px; height: 28px; border-radius: 50%;
   background: var(--acento);
-  color: #fff;
+  color: #fffaf5;
   font-family: 'Syne', sans-serif;
   font-weight: 800;
   font-size: 0.85rem;
@@ -114,7 +115,7 @@ body {
 .btn-ob {
   width: 100%;
   background: var(--acento);
-  color: #fff;
+  color: #fffaf5;
   border: none;
   border-radius: 16px;
   padding: 16px;
@@ -291,7 +292,7 @@ input[type="range"] {
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none; width: 18px; height: 18px;
   border-radius: 50%; background: var(--acento);
-  cursor: pointer; box-shadow: 0 1px 4px rgba(255,92,26,0.4);
+  cursor: pointer; box-shadow: 0 1px 4px rgba(242,78,30,0.4);
 }
 .hora-display {
   font-family: 'Syne', sans-serif; font-weight: 800;
@@ -300,7 +301,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 .btn-calc {
   background: var(--acento);
-  color: #fff; border: none; border-radius: 10px;
+  color: #fffaf5; border: none; border-radius: 10px;
   padding: 8px 20px; font-size: 0.84rem;
   font-family: 'Syne', sans-serif; font-weight: 800;
   cursor: pointer; transition: opacity 0.15s, transform 0.1s;
@@ -342,7 +343,7 @@ input[type="range"]::-webkit-slider-thumb {
 .btn-f:hover { border-color: var(--acento); color: var(--texto); }
 .btn-f.on {
   background: var(--acento); border-color: var(--acento);
-  color: #fff; font-weight: 700;
+  color: #fffaf5; font-weight: 700;
 }
 
 /* ── MAPA ── */
@@ -398,11 +399,11 @@ input[type="range"]::-webkit-slider-thumb {
 
 .fab-cta {
   height: 52px; border-radius: 26px;
-  background: var(--acento); color: #fff; border: none;
+  background: var(--acento); color: #fffaf5; border: none;
   display: flex; align-items: center; gap: 10px;
   padding: 0 22px 0 18px;
   font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.95rem;
-  cursor: pointer; box-shadow: 0 4px 20px rgba(255,92,26,0.35);
+  cursor: pointer; box-shadow: 0 4px 20px rgba(242,78,30,0.35);
   transition: transform 0.15s, opacity 0.15s; white-space: nowrap;
 }
 .fab-cta:active { transform: scale(0.95); }
@@ -417,13 +418,13 @@ input[type="range"]::-webkit-slider-thumb {
   transition: transform 0.15s; box-shadow: 0 2px 14px rgba(0,0,0,0.22);
 }
 .fab-quick:active { transform: scale(0.95); }
-.fab-sol    { background: var(--rojo);  color: #fff; }
-.fab-sombra { background: var(--verde); color: #fff; }
+.fab-sol    { background: var(--rojo);  color: #fffaf5; }
+.fab-sombra { background: var(--verde); color: #fffaf5; }
 
 #toast {
   position: fixed; top: 68px; left: 50%;
   transform: translateX(-50%);
-  background: rgba(26,18,8,0.88); color: #fff;
+  background: rgba(26,18,8,0.88); color: #fffaf5;
   padding: 10px 22px; border-radius: 100px;
   font-size: 0.85rem; font-family: 'DM Sans', sans-serif;
   z-index: 3000; opacity: 0; transition: opacity 0.22s;
@@ -491,7 +492,7 @@ input[type="range"]::-webkit-slider-thumb {
 .bs-step-num {
   width: 30px; height: 30px; border-radius: 50%;
   background: var(--acento);
-  color: #fff; font-family: 'Syne', sans-serif;
+  color: #fffaf5; font-family: 'Syne', sans-serif;
   font-weight: 800; font-size: 0.82rem;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0; z-index: 1; position: relative;
@@ -540,14 +541,14 @@ input[type="date"].bs-input:focus { border-color: var(--acento); }
 }
 .bs-chip.on {
   background: var(--acento); border-color: var(--acento);
-  color: #fff; font-weight: 700;
+  color: #fffaf5; font-weight: 700;
 }
 
 /* Botón calcular BS */
 .btn-calc-bs {
   width: 100%;
   background: var(--acento);
-  color: #fff; border: none; border-radius: 16px;
+  color: #fffaf5; border: none; border-radius: 16px;
   padding: 16px; font-size: 1rem;
   font-family: 'Syne', sans-serif; font-weight: 800;
   cursor: pointer; letter-spacing: 0.01em;
@@ -576,51 +577,88 @@ input[type="date"].bs-input:focus { border-color: var(--acento); }
   color: var(--texto2) !important; top: 10px !important; right: 12px !important;
   font-size: 20px !important;
 }
-.pi { padding: 14px 16px; min-width: 240px; max-width: 290px; }
+.pi { padding: 10px 12px; min-width: 200px; max-width: 250px; }
 .pi-nombre {
   font-family: 'Syne', sans-serif; font-weight: 800;
-  font-size: 0.95rem; margin-bottom: 2px; padding-right: 20px;
+  font-size: 0.88rem; margin-bottom: 2px; padding-right: 18px;
 }
-.pi-dir { font-size: 0.74rem; color: var(--texto2); margin-bottom: 10px; }
+.pi-dir { font-size: 0.7rem; color: var(--texto2); margin-bottom: 8px; }
 .pi-estado {
-  display: flex; align-items: flex-start; gap: 8px;
-  padding: 9px 11px; border-radius: 10px; margin-bottom: 10px;
-  font-size: 0.8rem; font-weight: 600; line-height: 1.4;
+  display: flex; align-items: flex-start; gap: 7px;
+  padding: 7px 9px; border-radius: 9px; margin-bottom: 8px;
+  font-size: 0.75rem; font-weight: 600; line-height: 1.4;
 }
 .est-pendiente { background: #F5F2EC; color: var(--texto2); }
 .est-noche     { background: #EEF0FF; color: #4060C0; }
-.est-edif-prop { background: #E5F9F0; color: #006B42; }
-.est-edif      { background: #EAFAF3; color: #007A4D; }
+.est-edif-prop { background: #E5F9F0; color: #005e37; }
+.est-edif      { background: #EAFAF3; color: #006b44; }
 .est-prop      { background: #FFF8E0; color: #996000; }
-.est-sol       { background: #FFF0EC; color: #C03010; }
+.est-sol       { background: #FFF0EC; color: #a82d0f; }
 .est-cargando  { background: #F5F2EC; color: var(--texto2); }
 .pi-grid {
   display: grid; grid-template-columns: 1fr 1fr;
-  gap: 7px; border-top: 1px solid var(--borde); padding-top: 10px;
+  gap: 6px; border-top: 1px solid var(--borde); padding-top: 8px;
 }
 .pd { display: flex; flex-direction: column; gap: 1px; }
-.pd-l { font-size: 0.62rem; color: var(--texto2); text-transform: uppercase; letter-spacing: 0.05em; }
-.pd-v { font-size: 0.8rem; font-weight: 600; }
-.pi-sol { font-size: 0.71rem; color: var(--texto2); font-style: italic; border-top: 1px solid var(--borde); padding-top: 7px; margin-top: 4px; }
-.pi-estimado { font-size: 0.67rem; color: var(--texto2); margin-top: 5px; font-style: italic; }
-.pi-maps { border-top: 1px solid var(--borde); margin-top: 8px; padding-top: 8px; }
+.pd-l { font-size: 0.58rem; color: var(--texto2); text-transform: uppercase; letter-spacing: 0.05em; }
+.pd-v { font-size: 0.75rem; font-weight: 600; }
+.pi-sol { font-size: 0.67rem; color: var(--texto2); font-style: italic; border-top: 1px solid var(--borde); padding-top: 6px; margin-top: 4px; }
+.pi-estimado { font-size: 0.63rem; color: var(--texto2); margin-top: 4px; font-style: italic; }
+.pi-maps { border-top: 1px solid var(--borde); margin-top: 6px; padding-top: 6px; }
 .pi-sv {
-  display: block; width: 100%; height: 120px;
-  object-fit: cover; border-radius: 9px; margin-bottom: 7px;
+  display: block; width: 100%; height: 80px;
+  object-fit: cover; border-radius: 8px; margin-bottom: 6px;
   background: var(--borde);
 }
 .pi-sv-map {
-  display: block; width: 100%; height: 140px;
-  border-radius: 9px; border: 0; margin-bottom: 7px;
+  display: block; width: 100%; height: 90px;
+  border-radius: 8px; border: 0; margin-bottom: 6px;
 }
-.pi-maps-links { display: flex; gap: 7px; }
+.pi-maps-links { display: flex; gap: 6px; }
 .pi-maps-btn {
-  flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;
-  padding: 7px 6px; border-radius: 9px; border: 1.5px solid var(--borde);
-  font-size: 0.72rem; font-weight: 600; color: var(--texto); text-decoration: none;
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px;
+  padding: 6px 5px; border-radius: 8px; border: 1.5px solid var(--borde);
+  font-size: 0.68rem; font-weight: 600; color: var(--texto); text-decoration: none;
   transition: background 0.15s;
 }
 .pi-maps-btn:hover { background: var(--borde); }
+
+/* ── BOTONES RÁPIDOS DESKTOP ── */
+.btn-quick-desk {
+  height: 34px; border-radius: 17px; border: none;
+  padding: 0 14px;
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.78rem;
+  cursor: pointer; white-space: nowrap; letter-spacing: 0.01em;
+  transition: opacity 0.15s, transform 0.1s;
+  flex-shrink: 0;
+}
+.btn-quick-desk:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn-quick-desk:active { transform: scale(0.95); opacity: 1; }
+.bqd-sol    { background: var(--rojo);  color: #fffaf5; }
+.bqd-sombra { background: var(--verde); color: #fffaf5; }
+
+/* ── PUNTO DE UBICACIÓN ── */
+.loc-dot {
+  width: 14px; height: 14px;
+  background: var(--azul);
+  border: 2.5px solid #fffaf5;
+  border-radius: 50%;
+  box-shadow: 0 1px 8px rgba(26,122,191,0.55);
+  position: relative; z-index: 1;
+}
+.loc-pulse {
+  position: absolute;
+  width: 38px; height: 38px;
+  top: -12px; left: -12px;
+  background: rgba(26,122,191,0.18);
+  border-radius: 50%;
+  animation: locpulse 2.2s ease-out infinite;
+  z-index: 0;
+}
+@keyframes locpulse {
+  0%   { transform: scale(0.5); opacity: 0.9; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
 
 .leaflet-tooltip {
   background: var(--panel) !important; border: 1.5px solid var(--borde) !important;
@@ -698,6 +736,9 @@ input[type="date"].bs-input:focus { border-color: var(--acento); }
     <div class="prog-bg" id="prog-bg"><div class="prog-fill" id="prog-fill"></div></div>
     <span id="prog-txt"></span>
   </div>
+  <div class="ctrl-sep"></div>
+  <button class="btn-quick-desk bqd-sol" id="btn-sol-desk">☀️ Sol ahora</button>
+  <button class="btn-quick-desk bqd-sombra" id="btn-sombra-desk">🌿 Sombra ahora</button>
 </div>
 
 <!-- FILTROS DESKTOP -->
@@ -954,9 +995,9 @@ function sombraPropia(t){
          t.construccion_ligera_bordillo_es===true;
 }
 function colorMarcador(sE,sP){
-  if(sE)     return {f:'#00A86B',s:'#007A4D'};
+  if(sE)     return {f:'#008f5a',s:'#006b44'};
   if(sP)     return {f:'#E8A820',s:'#B07800'};
-             return {f:'#D93B1A',s:'#A02A10'};
+             return {f:'#c73612',s:'#9a280e'};
 }
 const C_DESC={f:'#C0B0A0',s:'#A09080'};
 
@@ -1033,7 +1074,7 @@ function popupHTML(t,alturaMax,esEstimado){
   const mapsUrl=`https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
   const svUrl=`https://www.google.com/maps?cbll=${lat},${lng}&layer=c`;
   const svImgUrl=GMAPS_API_KEY
-    ?`https://maps.googleapis.com/maps/api/streetview?size=290x120&location=${lat},${lng}&fov=90&key=${GMAPS_API_KEY}`
+    ?`https://maps.googleapis.com/maps/api/streetview?size=250x80&location=${lat},${lng}&fov=90&key=${GMAPS_API_KEY}`
     :null;
   const mapEmbedUrl=`https://maps.google.com/maps?q=${lat},${lng}&z=18&output=embed&hl=es`;
   let estadoHTML;
@@ -1051,7 +1092,7 @@ function popupHTML(t,alturaMax,esEstimado){
     else        estadoHTML=`<div class="pi-estado est-sol">☀️ Al sol pleno a esta hora</div>`;
   }
   const _aMax=alturaMax??res?.alturaMax;
-  const pTxt=_aMax?`${_aMax.toFixed(0)}m (OSM)`:(res&&!res.estimado?'—':'Consultando…');
+  const pTxt=_aMax?`${_aMax.toFixed(0)}m`:(res&&!res.estimado?'no':'Consultando…');
   const solTxt=solActual?`Alt. ${solActual.alt.toFixed(1)}°, Az. ${solActual.az.toFixed(0)}°`:'—';
   const estimTxt=esEstimado?`<div class="pi-estimado">* Estimación. Toca para datos exactos.</div>`:'';
   return `<div class="pi">
@@ -1063,7 +1104,7 @@ function popupHTML(t,alturaMax,esEstimado){
       <div class="pd"><span class="pd-l">Sillas</span><span class="pd-v">${t.sillas_es||0}</span></div>
       <div class="pd"><span class="pd-l">L–J</span><span class="pd-v">${fmtH(t.hora_ini_LJ_es)}–${fmtH(t.hora_fin_LJ_es)}</span></div>
       <div class="pd"><span class="pd-l">V–D</span><span class="pd-v">${fmtH(t.hora_ini_VS_es)}–${fmtH(t.hora_fin_VS_es)}</span></div>
-      <div class="pd"><span class="pd-l">Edificio</span><span class="pd-v">${pTxt}</span></div>
+      <div class="pd"><span class="pd-l">Sombra de edificio</span><span class="pd-v">${pTxt}</span></div>
       <div class="pd"><span class="pd-l">Toldos/Sombrillas</span><span class="pd-v">${(t.sombrillas_es||0)+(t.toldos_pavimento_es||0)}</span></div>
     </div>
     ${solActual?`<div class="pi-sol">☀️ Sol: ${solTxt}</div>`:''}
@@ -1217,7 +1258,7 @@ fetch('data/terrazas.json')
         weight:0.5,opacity:getMkOpacity(),fillOpacity:getMkOpacity()
       });
       m.bindTooltip(t.rotulo||'Sin nombre',{direction:'top',offset:[0,-6]});
-      m.bindPopup('',{maxWidth:310});
+      m.bindPopup('',{maxWidth:260});
       m.on('click',async()=>{
         const popup=m.getPopup();
         popup.setContent(popupHTML(t,null,resultados[t.id_terraza]?.estimado));
@@ -1375,12 +1416,50 @@ document.getElementById('btn-sombra-ahora').addEventListener('click',()=>{
   modoRapido='sombra';setAhora();calcular();
 });
 
+// Quick actions desktop
+document.getElementById('btn-sol-desk').addEventListener('click',()=>{modoRapido='sol';setAhora();calcular();});
+document.getElementById('btn-sombra-desk').addEventListener('click',()=>{modoRapido='sombra';setAhora();calcular();});
+
 // GEOLOCALIZACIÓN
+let locMarker=null, locCircle=null, locWatchId=null;
+
+function actualizarPuntoUbic(lat,lng,acc){
+  if(locMarker){
+    locMarker.setLatLng([lat,lng]);
+    locCircle.setLatLng([lat,lng]).setRadius(acc);
+  } else {
+    const icon=L.divIcon({
+      html:'<div class="loc-pulse"></div><div class="loc-dot"></div>',
+      className:'',
+      iconSize:[14,14],
+      iconAnchor:[7,7]
+    });
+    locMarker=L.marker([lat,lng],{icon,zIndexOffset:1000,interactive:false}).addTo(map);
+    locCircle=L.circle([lat,lng],{
+      radius:acc,
+      color:'#1A7ABF',fillColor:'#1A7ABF',
+      fillOpacity:0.08,weight:1,opacity:0.25,
+      interactive:false
+    }).addTo(map);
+  }
+}
+
 document.getElementById('fab-loc').addEventListener('click',()=>{
-  if(!navigator.geolocation){alert('Tu navegador no soporta geolocalización.');return;}
+  if(!navigator.geolocation){mostrarToast('Tu navegador no soporta geolocalización');return;}
   navigator.geolocation.getCurrentPosition(
-    pos=>map.flyTo([pos.coords.latitude,pos.coords.longitude],15,{duration:1.2}),
-    ()=>alert('No se pudo obtener tu ubicación.')
+    pos=>{
+      const{latitude:lat,longitude:lng,accuracy:acc}=pos.coords;
+      actualizarPuntoUbic(lat,lng,acc);
+      map.flyTo([lat,lng],15,{duration:1.2});
+      if(!locWatchId){
+        locWatchId=navigator.geolocation.watchPosition(
+          p=>actualizarPuntoUbic(p.coords.latitude,p.coords.longitude,p.coords.accuracy),
+          null,
+          {enableHighAccuracy:true,maximumAge:10000}
+        );
+      }
+    },
+    ()=>mostrarToast('No se pudo obtener tu ubicación')
   );
 });
 
